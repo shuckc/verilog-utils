@@ -1,0 +1,21 @@
+[timestart] 0
+[size] 1000 583
+[pos] 2392 -77
+*-15.958890 15200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] PcapParser_test.
+@28
+PcapParser_test.pcap.CLOCK
+PcapParser_test.pcap.available
+PcapParser_test.pcap.datavalid
+@22
+PcapParser_test.pcap.data[7:0]
+PcapParser_test.pcap.eof[31:0]
+PcapParser_test.pcap.file[31:0]
+@28
+PcapParser_test.pcap.pause
+@22
+PcapParser_test.pcap.r[31:0]
+@23
+PcapParser_test.pcap.pktcount[7:0]
+[pattern_trace] 1
+[pattern_trace] 0
