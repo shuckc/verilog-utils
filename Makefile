@@ -2,6 +2,7 @@
 # pattern rules
 %.lxt : %.bin
 	vvp -n $^ -lxt2
+	gtkwave $@ gtksav/$(basename $(notdir $^)).sav &
 %.bin: %.v
 	iverilog -o $@ $^
 
