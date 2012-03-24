@@ -11,7 +11,7 @@ Convertors to and from binary to numerical ascii/bcd
 
 hash
 ----
-jenins.v - a framed byte-wise Jenkins hash-code calculator
+jenkins.v - a framed byte-wise Jenkins hash-code calculator
 serialMap.v - a key-to-value map data structure. Implemented using a l
 inear probe looked seeded by the key's hash. Module parameterised by k/v sizes.
 
