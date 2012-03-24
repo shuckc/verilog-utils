@@ -1,0 +1,29 @@
+[*]
+[*] GTKWave Analyzer v3.3.31 (w)1999-2012 BSI
+[*] Sat Mar 24 13:04:25 2012
+[*]
+[dumpfile] "/Users/shuckc/Documents/verilog-utils/bin/obin2bcd8.lxt"
+[dumpfile_mtime] "Sat Mar 24 12:57:44 2012"
+[dumpfile_size] 1781
+[savefile] "/Users/shuckc/Documents/verilog-utils/gtksav/obin2bcd8.sav"
+[timestart] 0
+[size] 1000 600
+[pos] 34 140
+*-18.622717 8730000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] bin2bcd8_test.
+[treeopen] bin2bcd8_test.uut.
+[sst_width] 211
+[signals_width] 134
+[sst_expanded] 1
+[sst_vpaned_height] 154
+@22
+bin2bcd8_test.uut.A[7:0]
+@200
+-output
+@24
+bin2bcd8_test.uut.HUNDREDS[1:0]
+bin2bcd8_test.uut.TENS[3:0]
+@25
+bin2bcd8_test.uut.ONES[3:0]
+[pattern_trace] 1
+[pattern_trace] 0

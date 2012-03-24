@@ -1,0 +1,44 @@
+[timestart] 0
+[size] 1719 839
+[pos] 2066 115
+*-17.572342 560000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] serialMap_test.
+[treeopen] serialMap_test.uut.
+@200
+-HASHMAP
+@28
+serialMap_test.uut.query[0]
+@820
+serialMap_test.uut.key[7:0]
+@28
+serialMap_test.uut.notfound[0]
+serialMap_test.uut.found[0]
+@22
+serialMap_test.uut.data[7:0]
+@201
+-internals
+@22
+serialMap_test.uut.key[7:0]
+@24
+serialMap_test.uut.keycount[7:0]
+@28
+serialMap_test.uut.hashcomplete[0]
+@22
+serialMap_test.uut.state[3:0]
+serialMap_test.uut.base[5:0]
+serialMap_test.uut.pos[5:0]
+@24
+serialMap_test.uut.chkchar[7:0]
+serialMap_test.uut.address[32:0]
+@22
+serialMap_test.uut.memd[7:0]
+@820
+serialMap_test.uut.memd[7:0]
+@28
+serialMap_test.uut.keyCharNull[0]
+serialMap_test.uut.posempty[0]
+serialMap_test.uut.entryEnd[0]
+@22
+serialMap_test.uut.data[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,29 @@
+[timestart] 0
+[size] 1719 839
+[pos] 2066 115
+*-17.572342 560000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] jenkins_test.
+@28
+jenkins_test.uut.CLOCK[0]
+@200
+-public
+@28
+jenkins_test.uut.sample[0]
+@820
+jenkins_test.uut.value[7:0]
+@28
+jenkins_test.uut.complete[0]
+@22
+jenkins_test.uut.hash[31:0]
+@200
+-internals
+@22
+jenkins_test.uut.value[7:0]
+jenkins_test.uut.work[31:0]
+jenkins_test.uut.hash[31:0]
+@28
+jenkins_test.uut.sample[0]
+jenkins_test.uut.started[0]
+jenkins_test.uut.complete_int[0]
+[pattern_trace] 1
+[pattern_trace] 0
