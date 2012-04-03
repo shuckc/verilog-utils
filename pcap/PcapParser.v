@@ -13,14 +13,17 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-module PcapParser(
-	input CLOCK,
-	input pause,
-	output available,
-	output datavalid,
-	output [7:0] data,
-	output [7:0] pktcount,
-	output pcapfinished
+module PcapParser
+	#(
+		parameter pcap_filename = "none"
+	) (
+		input CLOCK,
+		input pause,
+		output available,
+		output datavalid,
+		output [7:0] data,
+		output [7:0] pktcount,
+		output pcapfinished
 	);
 
 	// regs
@@ -45,7 +48,12 @@ module PcapParser(
 	initial begin
 
 		// open pcap file
-		file = $fopen("pcap/tcp-4846-connect-disconnect.pcap", "r");
+		if (pcap_filename == "none") begin
+			$display("pcap filename parameter not set");
+			$finish_and_return(1);
+		end
+
+		file = $fopen(pcap_filename, "r");
 		if (file == `NULL) begin
 			$display("can't read pcap input");
 			$finish_and_return(1);

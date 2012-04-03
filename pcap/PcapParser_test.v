@@ -21,7 +21,9 @@ module PcapParser_test;
 	wire pcapfinished;
 
 	// Instantiate the Unit Under Test (UUT)
-	PcapParser pcap (
+	PcapParser #(
+		.pcap_filename( "pcap/tcp-4846-connect-disconnect.pcap" )
+	) pcap (
 		.CLOCK(CLOCK),
 		.pause(paused),
 		.available(available),
