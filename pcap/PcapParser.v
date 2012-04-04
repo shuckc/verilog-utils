@@ -23,15 +23,17 @@ module PcapParser
 		output datavalid,
 		output [7:0] data,
 		output [7:0] pktcount,
+		output newpkt,
 		output pcapfinished
 	);
 
 	// regs
 	reg available = 0;
 	reg datavalid = 0;
-	reg [7:0] pktcount = 1;	// line up with Wireshark GUI
+	reg [7:0] pktcount = 0;	// line up with Wireshark GUI
 	reg [7:0] data = 0;
 	reg pcapfinished = 0;
+	reg newpkt = 0;
 
 	// buffers for message
 	reg [7:0] global_header [0:23];
@@ -74,9 +76,11 @@ module PcapParser
 			$display(" pcap endian: unrecognised format");
 			$finish_and_return(1);
 		end
+	end
 
-		while ( eof == 0 ) begin
-			#20
+	always @(posedge CLOCK)
+	begin	
+		if (eof == 0 && diskSz == 0) begin
 			// read packet header
 			// fields of interest are U32 so bear in mind the byte ordering when assembling
 			// multibyte fields
@@ -91,30 +95,31 @@ module PcapParser
 
 			$display("  packet %0d: incl_length %0d orig_length %0d", pktcount, pktSz, diskSz );
 
-			// optional inter-packet delay - make it a multiple of the clock!
 			available <= 1;
-
-			// packet content is byte-aligned, no swapping required
-			while (diskSz > 0) begin
-				if (~pause) begin
-					eof = $feof(file);
-					diskSz <= diskSz - 1;
-					data <= $fgetc(file);
-					if ( eof != 0 || diskSz == 1) begin
-						available <= 0;
-					end else begin
-						datavalid <= 1;
-					end
-				end else begin
-					datavalid <= 0;
-				end
-				#20
-				i = i+1;
-			end
+			newpkt <= 1;
 			pktcount <= pktcount + 1;
 
+		end else if ( diskSz > 0) begin
+			
+			// packet content is byte-aligned, no swapping required
+			if (~pause) begin
+				newpkt <= 0;
+				eof = $feof(file);
+				diskSz <= diskSz - 1;
+				data <= $fgetc(file);
+				if ( eof != 0 || diskSz == 1) begin
+					available <= 0;
+				end else begin
+					datavalid <= 1;
+				end
+			end else begin
+				datavalid <= 0;
+			end
+
+		end else if (eof != 0) begin
+			pcapfinished <= 1;
 		end
-		pcapfinished <= 1;
+		
 
 	end
 
