@@ -51,15 +51,17 @@ module Tcp_test;
 	always #10 CLOCK = ~CLOCK;
 
 	integer i;
+	integer rcount;
 
 	initial begin
 	
 		$dumpfile("bin/olittletoe.lxt");
 		$dumpvars(0,tcp);
+		rcount = 0;
 
 		#100 
 		paused = 0;
-
+	
 		// Add stimulus here
 		while (~pcapfinished ) begin
 			// $display("stream: %8d %x %d %x %x %c", i, paused, pktcount, streamvalid, stream, stream);
@@ -74,6 +76,11 @@ module Tcp_test;
 	always @(posedge CLOCK)	begin
 		if (tcpdataValid) begin
 			$display("tcp: %x ", tcpdata);
+			rcount = rcount + 1;
+			if (rcount > 1 || tcpdata != 8'h20 ) begin
+				$display(" tcp - expected one output byte, value 0x20, got %d values last %x", rcount, tcpdata );
+				$finish_and_return(-1);
+			end
 		end
 	end
 

@@ -23,29 +23,30 @@ module Tcp
 		input [7:0] data,
 		output outDataValid,
 		output [7:0] outData,
-		output [7:0] mss
+		output [7:0] mss,
+		output gapped
 	);
 	
-	parameter  [6:0]  sIDLE      = 5'd001;
-	parameter  [6:0]  sETH_MACD0 = 5'd002;
-	parameter  [6:0]  sETH_MACD1 = 5'd003;
-	parameter  [6:0]  sETH_MACD2 = 5'd004;
-	parameter  [6:0]  sETH_MACD3 = 5'd005;
-	parameter  [6:0]  sETH_MACD4 = 5'd006;
-	parameter  [6:0]  sETH_MACD5 = 5'd007;
-	parameter  [6:0]  sETH_MACS0 = 5'd008;
-	parameter  [6:0]  sETH_MACS1 = 5'd009;
-	parameter  [6:0]  sETH_MACS2 = 5'd010;
-	parameter  [6:0]  sETH_MACS3 = 5'd011;
-	parameter  [6:0]  sETH_MACS4 = 5'd012;
-	parameter  [6:0]  sETH_MACS5 = 5'd013;
-	parameter  [6:0]  sETH_BADMAC= 5'd014;
-	parameter  [6:0]  sETH_TYPE0 = 5'd015;	// type or -> 802.1Q header (TPID)
-	parameter  [6:0]  sETH_TYPE1 = 5'd016;	// type
+	parameter  [6:0]  sIDLE      = 6'd001;
+	parameter  [6:0]  sETH_MACD0 = 6'd002;
+	parameter  [6:0]  sETH_MACD1 = 6'd003;
+	parameter  [6:0]  sETH_MACD2 = 6'd004;
+	parameter  [6:0]  sETH_MACD3 = 6'd005;
+	parameter  [6:0]  sETH_MACD4 = 6'd006;
+	parameter  [6:0]  sETH_MACD5 = 6'd007;
+	parameter  [6:0]  sETH_MACS0 = 6'd008;
+	parameter  [6:0]  sETH_MACS1 = 6'd009;
+	parameter  [6:0]  sETH_MACS2 = 6'd010;
+	parameter  [6:0]  sETH_MACS3 = 6'd011;
+	parameter  [6:0]  sETH_MACS4 = 6'd012;
+	parameter  [6:0]  sETH_MACS5 = 6'd013;
+	parameter  [6:0]  sETH_BADMAC= 6'd014;
+	parameter  [6:0]  sETH_TYPE0 = 6'd015;	// type or -> 802.1Q header (TPID)
+	parameter  [6:0]  sETH_TYPE1 = 6'd016;	// type
 
-	parameter  [6:0]  sETH_802Q1 = 5'd017;	// 802.1Q header (TPID)
-	parameter  [6:0]  sETH_802Q2 = 5'd018;	//   vlan  (TCI)
-	parameter  [6:0]  sETH_802Q3 = 5'd019;	//   vlan  (TCI)  => sETH_TYPE0
+	parameter  [6:0]  sETH_802Q1 = 6'd017;	// 802.1Q header (TPID)
+	parameter  [6:0]  sETH_802Q2 = 6'd018;	//   vlan  (TCI)
+	parameter  [6:0]  sETH_802Q3 = 6'd019;	//   vlan  (TCI)  => sETH_TYPE0
 
 	// ethertypes
 	//  0x0800 IPv4
@@ -54,13 +55,13 @@ module Tcp
 	//  0x86DD IPV6
 	//	
 	// error/counter states
-	parameter  [6:0]  sETH_TYPE_IPV6  = 5'd019;
-	parameter  [6:0]  sETH_TYPE_ERR   = 5'd020;
-	parameter  [6:0]  sETH_TYPE_ARP_0 = 5'd021;
+	parameter  [6:0]  sETH_TYPE_IPV6  = 6'd019;
+	parameter  [6:0]  sETH_TYPE_ERR   = 6'd020;
+	parameter  [6:0]  sETH_TYPE_ARP_0 = 6'd021;
 
 	// IPV4 handing
-	parameter  [6:0]  sIPV4_VER_SZ	= 5'd030;
-	parameter  [6:0]  sIPV4_DSCP	= 5'd031;
+	parameter  [6:0]  sIPV4_VER_SZ	= 6'd030;
+	parameter  [6:0]  sIPV4_DSCP	= 6'd031;
 	parameter  [6:0]  sIPV4_LEN0	= 6'd032;
 	parameter  [6:0]  sIPV4_LEN1	= 6'd033;
 	parameter  [6:0]  sIPV4_ID0		= 6'd034;
@@ -127,8 +128,11 @@ module Tcp
 	parameter  [6:0]  sTCP_OPT3			= 7'd093;
 
 	parameter  [6:0]  sTCP_DATA			= 7'd095;
-	
 
+
+	// fixed size of an IP header (20) and TCP header (20) without any optional headers
+	parameter  [15:0]  SZ_IP_TCP_NOOPTIONS	= 16'd20 + 16'd20;
+	
 	// hot state
 	reg [7:0] pos = 1;
 
@@ -141,7 +145,8 @@ module Tcp
 	reg [3:0] IPV4_IHeaderLen = 0; 	// decremented at the first byte of each 32 word
 									// except first, since value in [4:7] byte 0 so
 									// defer decrement until byte 2.
-	reg [6:0] IPV4_PCOL = 0;
+	reg [15:0] IPV4_Size = 0;
+	reg [6:0]  IPV4_PCOL = 0;
 
 	// TCP handling
 	reg tcpFlagSYN = 0;
@@ -149,9 +154,12 @@ module Tcp
 	reg tcpFlagRST = 0;
 	reg tcpFlagPSH = 0;
 	reg tcpFlagFIN = 0;
+	reg [15:0] tcpData = 0;
 	reg [3:0] tcpDataOff = 0;
-	reg [31:0] seq = 0;
+	reg [31:0] tcpSeq = 0;
+	reg [31:0] tcpSeqBuf = 0;
 
+	reg gapped = 0;
 	reg outDataValid = 0;
 	reg [7:0] outData = 0;
 	
@@ -177,7 +185,7 @@ module Tcp
 		if (newpkt) begin
 			pos 	<=  sETH_MACD0;
 			macdest <= 1;
-			outDataValid <= 0;			
+			outDataValid <= 0;
 		end else if (dataValid) begin
 			case (pos)
 			sIDLE:	begin pos <= sIDLE;
@@ -283,12 +291,15 @@ module Tcp
 					end
 			sIPV4_LEN0:	begin	
 						pos <= sIPV4_LEN1;
+						IPV4_Size[15:8] <= data;
 					end
 			sIPV4_LEN1:	begin	
 						pos <= sIPV4_ID0;
+						IPV4_Size[7:0] <= data;
 					end
 			sIPV4_ID0:	begin	
 						pos <= sIPV4_ID1;
+						tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;	// TCP data size assuming no IPV4 options, no TCP options
 						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
 					end
 			sIPV4_ID1:	begin	
@@ -352,16 +363,20 @@ module Tcp
 			 sIPV4_OPTION0: begin	
 						pos <= sIPV4_OPTION1;
 						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
+						tcpData <= tcpData - 1;
 					end
 			 sIPV4_OPTION1: begin	
 						pos <= sIPV4_OPTION2;
+						tcpData <= tcpData - 1;
 					end
 			 sIPV4_OPTION2: begin	
 						pos <= sIPV4_OPTION3;
+						tcpData <= tcpData - 1;
 					end
 			 sIPV4_OPTION3: begin	
 						// fork back to OPTION0 or IPV4_PCOL
 						pos <= (IPV4_IHeaderLen == 0) ? IPV4_PCOL : sIPV4_OPTION0;
+						tcpData <= tcpData - 1;
 					end
 			
 			// TCP states
@@ -401,17 +416,23 @@ module Tcp
 			sTCP_DSTP1: begin
 						pos <= sTCP_SEQ0;
 					end
+			// it's mandatory to buffer the SEQuence number as we don't know whether to latch
+			// to tcpSeqNum (SYN) or compare for gaploss (!SYN) 
 			sTCP_SEQ0: begin
 						pos <= sTCP_SEQ1;
+						tcpSeqBuf[31:24] <= data;
 					end
 			sTCP_SEQ1: begin
 						pos <= sTCP_SEQ2;
+						tcpSeqBuf[23:16] <= data;
 					end
 			sTCP_SEQ2: begin
 						pos <= sTCP_SEQ3;
+						tcpSeqBuf[15:8] <= data;
 					end
 			sTCP_SEQ3: begin
 						pos <= sTCP_ACK0;
+						tcpSeqBuf[7:0] <= data;
 					end
 			sTCP_ACK0: begin
 						pos <= sTCP_ACK1;
@@ -453,29 +474,53 @@ module Tcp
 						pos <= sTCP_URG1;
 					end
 			sTCP_URG1: begin
-						pos <= (tcpDataOff > 5) ? sTCP_OPT0 : sTCP_DATA;
+						pos <= (tcpDataOff != 5) ? sTCP_OPT0 : 	// 5 words in TCP if no options
+								(tcpData != 0) ? sTCP_DATA:		// 0 if this last byte (ie. no data)
+								sIDLE;	
 					end
 			sTCP_OPT0: begin
 						pos <= sTCP_OPT1;
 						tcpDataOff <= tcpDataOff - 1;
+						tcpData <= tcpData - 1;
 					end
 			sTCP_OPT1: begin
 						pos <= sTCP_OPT2;
+						tcpData <= tcpData - 1;
 					end
 			sTCP_OPT2: begin
 						pos <= sTCP_OPT3;
+						tcpData <= tcpData - 1;
 					end
 			sTCP_OPT3: begin
-						pos <= (tcpDataOff > 5) ? sTCP_OPT0 : sTCP_DATA;
+						pos <= (tcpDataOff != 5) ? sTCP_OPT0 : 
+								(tcpData != 1) ? sTCP_DATA : 		// 1 if this is last byte
+								 sIDLE;
+						tcpData <= tcpData - 1;
 					end
-
 			sTCP_DATA: begin
-						pos <= sTCP_DATA;
+						pos <= (tcpData != 1) ? sTCP_DATA : sIDLE;	// 1 if this is last byte
 						outDataValid <= 1;
 						outData <= data;
 					end
 			endcase
 		end				
+	end
+
+	always @(posedge CLOCK)	begin
+		// some elements of the design are idempotent so can be repeated while a state is held
+		// waiting for dataValid. Bring out to this block to avoid holding up the critical path.
+		
+		case (pos)
+			sTCP_WINSZ0: begin
+					if (tcpFlagSYN) begin
+						tcpSeq <= tcpSeqBuf;
+					end else begin
+						// no SYN... so tcpSeqBuf should match our "calculated" tcpSeq which has been 
+						// incremented by the last data payload
+						gapped <= (tcpSeqBuf != tcpSeq);
+					end
+				end
+		endcase
 	end
 
 endmodule

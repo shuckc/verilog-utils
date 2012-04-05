@@ -1,7 +1,7 @@
-[timestart] 173400
+[timestart] 0
 [size] 1499 857
 [pos] 365 84
-*-17.175619 810000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-20.175619 6950000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] Tcp_test.
 @28
 Tcp_test.tcp.CLOCK[0]
@@ -25,7 +25,6 @@ Tcp_test.tcp.counterEthIPTypeTCP[7:0]
 @22
 Tcp_test.tcp.IPV4_IHeaderLen[3:0]
 Tcp_test.tcp.IPV4_PCOL[6:0]
-@23
 Tcp_test.tcp.tcpDataOff[3:0]
 @28
 Tcp_test.tcp.tcpFlagACK[0]
@@ -39,5 +38,7 @@ Tcp_test.tcp.tcpFlagSYN[0]
 Tcp_test.tcp.outData[7:0]
 @28
 Tcp_test.tcp.outDataValid[0]
+@29
+Tcp_test.tcp.gapped[0]
 [pattern_trace] 1
 [pattern_trace] 0
