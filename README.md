@@ -5,9 +5,18 @@ Utility to replay a packets from Wireshark/tcpdump pcap file over a single-byte 
 for use in network handling test benches.  
 http://wiki.wireshark.org/Development/LibpcapFileFormat
 
+littletoe
+---------
+Basic read-only MAC/IP/TCP stack to follow a specific TCP session at the data level, from wire-format packets.
+
 bcd
 ---
 Convertors to and from binary to numerical ascii/bcd
+
+xml
+---
+A scanner/parser to help parse XML documents. Track tag nesting stack, tag key/value/data, comments and outputs control signals synchronised with datastream. Uses an internal 4-byte look-ahead.
+
 
 hash
 ----
