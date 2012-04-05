@@ -1,12 +1,11 @@
 [timestart] 0
 [size] 1499 857
-[pos] 365 84
-*-20.175619 6950000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 6 -41
+*-20.175619 1800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] Tcp_test.
 @28
-Tcp_test.tcp.CLOCK[0]
-Tcp_test.tcp.newpkt[0]
-Tcp_test.tcp.dataValid[0]
+Tcp_test.tcp.CLOCK
+Tcp_test.tcp.newpkt
 @22
 Tcp_test.tcp.data[7:0]
 @24
@@ -24,21 +23,27 @@ Tcp_test.tcp.counterEthIPTypeTCP[7:0]
 -flags
 @22
 Tcp_test.tcp.IPV4_IHeaderLen[3:0]
+Tcp_test.tcp.IPV4_Size[15:0]
 Tcp_test.tcp.IPV4_PCOL[6:0]
 Tcp_test.tcp.tcpDataOff[3:0]
+Tcp_test.tcp.tcpData[15:0]
 @28
-Tcp_test.tcp.tcpFlagACK[0]
-Tcp_test.tcp.tcpFlagFIN[0]
-Tcp_test.tcp.tcpFlagPSH[0]
-Tcp_test.tcp.tcpFlagRST[0]
-Tcp_test.tcp.tcpFlagSYN[0]
+Tcp_test.tcp.tcpFlagACK
+Tcp_test.tcp.tcpFlagFIN
+Tcp_test.tcp.tcpFlagPSH
+Tcp_test.tcp.tcpFlagRST
+Tcp_test.tcp.tcpFlagSYN
 @200
 -output
 @22
 Tcp_test.tcp.outData[7:0]
 @28
-Tcp_test.tcp.outDataValid[0]
-@29
-Tcp_test.tcp.gapped[0]
+Tcp_test.tcp.outDataValid
+@22
+Tcp_test.tcp.tcpSeq[31:0]
+@23
+Tcp_test.tcp.tcpSeqBuf[31:0]
+@28
+Tcp_test.tcp.gapped
 [pattern_trace] 1
 [pattern_trace] 0

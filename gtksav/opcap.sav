@@ -1,29 +1,32 @@
 [timestart] 0
 [size] 1000 583
-[pos] 1799 332
-*-15.958890 55000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -1 -1
+*-16.958889 110100 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] PcapParser_test.
+@200
+-input
 @28
-PcapParser_test.pcap.CLOCK[0]
-PcapParser_test.pcap.pause[0]
+PcapParser_test.pcap.CLOCK
+PcapParser_test.pcap.pause
 @200
 -output
 @28
-PcapParser_test.pcap.available[0]
-PcapParser_test.pcap.newpkt[0]
-PcapParser_test.pcap.datavalid[0]
+PcapParser_test.pcap.available
+PcapParser_test.pcap.newpkt
 @22
 PcapParser_test.pcap.data[7:0]
-PcapParser_test.pcap.pktcount[7:0]
 @28
-PcapParser_test.pcap.pcapfinished[0]
+PcapParser_test.pcap.datavalid
+@22
+PcapParser_test.pcap.pktcount[7:0]
+@29
+PcapParser_test.pcap.pcapfinished
 @200
 -internal
 @22
 PcapParser_test.pcap.eof[31:0]
 PcapParser_test.pcap.file[31:0]
 PcapParser_test.pcap.r[31:0]
-@23
 PcapParser_test.pcap.countIPG[31:0]
 [pattern_trace] 1
 [pattern_trace] 0
