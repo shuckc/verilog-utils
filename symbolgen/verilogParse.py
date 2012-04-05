@@ -111,7 +111,7 @@ def Verilog_BNF():
         compilerDirective = Combine( "`" + \
             oneOf("define undef ifdef else endif default_nettype "
                   "include resetall timescale unconnected_drive "
-                  "nounconnected_drive celldefine endcelldefine") + \
+                  "nounconnected_drive celldefine endcelldefine ifndef") + \
             restOfLine ).setName("compilerDirective")
 
         # primitives
@@ -557,7 +557,12 @@ def Verilog_BNF():
         port = portExpr | Group( ( "." + identifier + "(" + portExpr + ")" ) )
 
         moduleHdr = Group ( oneOf("module macromodule") + identifier +
-                 Optional( "(" + Group( Optional( delimitedList( 
+		 Optional( "#(" + Group( Optional( delimitedList( 
+                                    Group( "parameter" + identifier + "=" + number ) 
+                                     ) ) ) + 
+		 
+			   ")" ) +                 
+		 Optional( "(" + Group( Optional( delimitedList( 
                                     Group(oneOf("input output") + 
                                             (netDecl1Arg | netDecl2Arg | netDecl3Arg) ) |
                                     port ) ) ) + 
@@ -706,8 +711,6 @@ else:
     #~ from pyparsing import ParseResults
     #~ lp = LineProfiler(ParseResults.__init__)
 
-    main()
-    
     #~ lp.print_stats()
     #~ import hotshot
     #~ p = hotshot.Profile("vparse.prof",1,1)
