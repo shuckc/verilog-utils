@@ -83,7 +83,7 @@ module XMLdecoder_test;
 		overrun = 10;
 
 		// open stimulus document
-		file = $fopen("ebsprice/xmltest.txt", "r");
+		file = $fopen("xml/xmltest.txt", "r");
 		if (file == `NULL) begin
 			$display("can't read test cases");
 			$finish_and_return(1);

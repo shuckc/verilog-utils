@@ -1,0 +1,46 @@
+[timestart] 0
+[size] 1219 834
+[pos] -1 -1
+*-17.000000 325000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] XMLdecoder_test.
+@200
+-input
+@28
+XMLdecoder_test.uut.CLOCK
+XMLdecoder_test.uut.inValid
+@820
+XMLdecoder_test.uut.in[7:0]
+@28
+XMLdecoder_test.uut.newMsg
+@200
+-trace
+@28
+XMLdecoder_test.uut._isClosingTag
+XMLdecoder_test.uut._isOpeningTag
+XMLdecoder_test.uut._isSelfClosingTag
+@201
+-output
+@28
+XMLdecoder_test.uut.isComment
+XMLdecoder_test.uut.isTag
+XMLdecoder_test.uut.isTagKey
+XMLdecoder_test.uut.isTagName
+XMLdecoder_test.uut.isTagValue
+XMLdecoder_test.uut.isData
+XMLdecoder_test.uut.outNewMsg
+XMLdecoder_test.uut.outValid
+@820
+XMLdecoder_test.uut.out[7:0]
+@200
+-stack#
+@22
+XMLdecoder_test.uut.s0[7:0]
+XMLdecoder_test.uut.s1[7:0]
+XMLdecoder_test.uut.s2[7:0]
+XMLdecoder_test.uut.s3[7:0]
+XMLdecoder_test.uut.s4[7:0]
+XMLdecoder_test.uut.s5[7:0]
+XMLdecoder_test.uut.s6[7:0]
+XMLdecoder_test.uut.s7[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -7,7 +7,8 @@
 	iverilog -o $@ $^
 
 # tagets
-default: bin/opcap.lxt bin/obin2bcd8.lxt bin/obin2bcdN.lxt bin/ohash.lxt bin/ohashmap.lxt bin/olittletoe.lxt
+default: bin/opcap.lxt bin/obin2bcd8.lxt bin/obin2bcdN.lxt bin/ohash.lxt bin/ohashmap.lxt bin/olittletoe.lxt \
+	bin/oxml.lxt
 clean: 
 	RM bin/*
 
@@ -36,5 +37,9 @@ bin/ohashmap.bin: hash/serialMap*.v hash/jenkins.v
 
 bin/olittletoe.lxt: bin/olittletoe.bin
 bin/olittletoe.bin: littletoe/tcp.v littletoe/tcp_test.v pcap/PcapParser.v
+	iverilog -Wall -o $@ $^
+
+bin/oxml.lxt: bin/oxml.bin
+bin/oxml.bin: xml/XMLdecoder*.v
 	iverilog -Wall -o $@ $^
 
