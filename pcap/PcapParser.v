@@ -15,7 +15,8 @@
 
 module PcapParser
 	#(
-		parameter pcap_filename = "none"
+		parameter pcap_filename = "none",
+		parameter ipg = 32
 	) (
 		input CLOCK,
 		input pause,
@@ -46,6 +47,7 @@ module PcapParser
 	integer i    = 0;
 	integer pktSz  = 0;
 	integer diskSz = 0;
+	integer countIPG = 0;
 
 	initial begin
 
@@ -80,7 +82,7 @@ module PcapParser
 
 	always @(posedge CLOCK)
 	begin	
-		if (eof == 0 && diskSz == 0) begin
+		if (eof == 0 && diskSz == 0 && countIPG == 0) begin
 			// read packet header
 			// fields of interest are U32 so bear in mind the byte ordering when assembling
 			// multibyte fields
@@ -98,6 +100,7 @@ module PcapParser
 			available <= 1;
 			newpkt <= 1;
 			pktcount <= pktcount + 1;
+			countIPG <= ipg;	// reload interpacket gap counter
 
 		end else if ( diskSz > 0) begin
 			
@@ -115,9 +118,10 @@ module PcapParser
 			end else begin
 				datavalid <= 0;
 			end
-
+		end else if (countIPG > 0) begin
+			countIPG <= countIPG - 1;
 		end else if (eof != 0) begin
-			pcapfinished <= 1;
+			pcapfinished <= 1;	// terminal loop here
 		end
 		
 
