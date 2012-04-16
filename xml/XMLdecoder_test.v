@@ -25,6 +25,8 @@ module XMLdecoder_test;
     wire isTagKey;
     wire isTagValue;
     wire isComment;
+    wire depthPush;
+    wire depthPop;
     wire [3:0] tagDepth;
     wire [7:0] s0;
     wire [7:0] s1;
@@ -53,6 +55,8 @@ module XMLdecoder_test;
 		.isTagKey(isTagKey),
 		.isTagName(isTagName),
 		.tagDepth(tagDepth),
+		.depthPush(depthPush),
+		.depthPop(depthPop),
 		.s0(s0),
 		.s1(s1),
 		.s2(s2),
@@ -90,30 +94,37 @@ module XMLdecoder_test;
 		end
 
 		$display("Reading XML");
-		$display(" i    in   |  out     dp ! t d n k v    stack 0 1 2 3 4 5 6 7");
+		$display(" i    in   |  out     dp + -    ! t d n k v    stack 0 1 2 3 4 5 6 7");
 
 		// Wait 100 ns for global reset to finish
 		#100;
 
 		// stimulus
-		while (1) begin
+		while (overrun > 0) begin
 			stream <= $fgetc(file);
 			newMsg <= 0;
 			svalid <= $feof(file) == 0;
 			i <= i+1;
 			if ( !svalid ) begin
 				overrun <= overrun - 1;
-				if (overrun == 0) begin
-					#10 $finish;
-				end
 			end
 			outNoNL = (out == 10) ? "." : out;
-			$display(" %4d %b %x | %b %x %s   %02d %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
+			$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
 				i, svalid, stream,
-				outValid, out, outNoNL, tagDepth, isComment, isTag, isData, isTagName, isTagKey, isTagValue,
+				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isTag, isData, isTagName, isTagKey, isTagValue,
 				s0, s1, s2, s3, s4, s5, s6, s7);
 			#10;
 
+		end
+
+		// post-test checks
+		if (tagDepth != 0) begin
+			$display("depth did not finish flat");
+			$finish_and_return(1);
+		end
+		if (s0 != 1) begin
+			$display("should be exactly one root element");
+			$finish_and_return(1);
 		end
 
 		$finish;

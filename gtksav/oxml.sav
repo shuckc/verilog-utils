@@ -1,36 +1,58 @@
-[timestart] 0
-[size] 1219 834
+[*]
+[*] GTKWave Analyzer v3.3.34 (w)1999-2012 BSI
+[*] Mon Apr 16 12:39:44 2012
+[*]
+[dumpfile] "bin/oxml.lxt"
+[savefile] "gtksav/oxml.sav"
+[timestart] 1925000
+[size] 1627 967
 [pos] -1 -1
-*-17.000000 325000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-17.000000 2615000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] XMLdecoder_test.
+[sst_width] 197
+[signals_width] 230
+[sst_expanded] 1
+[sst_vpaned_height] 282
 @200
 -input
 @28
-XMLdecoder_test.uut.CLOCK
-XMLdecoder_test.uut.inValid
+XMLdecoder_test.uut.CLOCK[0]
+XMLdecoder_test.uut.inValid[0]
 @820
 XMLdecoder_test.uut.in[7:0]
 @28
-XMLdecoder_test.uut.newMsg
+XMLdecoder_test.uut.newMsg[0]
+XMLdecoder_test.uut.vnnn[0]
+XMLdecoder_test.uut.vnn[0]
+XMLdecoder_test.uut.vn[0]
+@29
+XMLdecoder_test.uut.v[0]
 @200
 -trace
 @28
-XMLdecoder_test.uut._isClosingTag
-XMLdecoder_test.uut._isOpeningTag
-XMLdecoder_test.uut._isSelfClosingTag
-@201
+XMLdecoder_test.uut._isClosingTag[0]
+XMLdecoder_test.uut._isOpeningTag[0]
+XMLdecoder_test.uut._isSelfClosingTag[0]
+@200
 -output
 @28
-XMLdecoder_test.uut.isComment
-XMLdecoder_test.uut.isTag
-XMLdecoder_test.uut.isTagKey
-XMLdecoder_test.uut.isTagName
-XMLdecoder_test.uut.isTagValue
-XMLdecoder_test.uut.isData
-XMLdecoder_test.uut.outNewMsg
-XMLdecoder_test.uut.outValid
+XMLdecoder_test.uut.isComment[0]
+XMLdecoder_test.uut.isTag[0]
+XMLdecoder_test.uut.isTagKey[0]
+XMLdecoder_test.uut.isTagName[0]
+XMLdecoder_test.uut.isTagValue[0]
+XMLdecoder_test.uut.isData[0]
+XMLdecoder_test.uut.outNewMsg[0]
+XMLdecoder_test.uut.outValid[0]
 @820
 XMLdecoder_test.uut.out[7:0]
+@200
+-depth
+@22
+XMLdecoder_test.uut.tagDepth[3:0]
+@28
+XMLdecoder_test.uut.depthPop[0]
+XMLdecoder_test.uut.depthPush[0]
 @200
 -stack#
 @22

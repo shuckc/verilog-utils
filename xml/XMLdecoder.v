@@ -20,7 +20,10 @@ module XMLDecoder(
     output isTagKey,
     output isTagValue,
     output isComment,
+
     output [3:0] tagDepth,
+    output depthPush,
+    output depthPop,
 
     output [7:0] s0,
     output [7:0] s1,
@@ -61,11 +64,13 @@ module XMLDecoder(
 	reg intag             = 0;
 	reg [3:0] tagdepth    = 0;
 	reg [7:0] tagno [0:7];  // tag position at depth N.. if large enough will instantiate a block ram
+	reg _isDepthPush      = 0;
+	reg _isDepthPop       = 0;
 
 	// XML comment is <!--
 	wire onTagStartNext = sn == "<" && !(snn=="!" && snnn=="-");  //  '<' but not <!-
 	wire onTagClose = (s == ">");		   //  '>'
-	wire onSelfCloseTag = s =="/" && sn == ">";
+	wire onSelfCloseTag = (s =="/" || s == "?") && sn == ">";   // consider XML doctype self-closing
 	wire onCloseThenData = onTagClose && sn != "<";
 
 	wire _isOpeningTag = intag && !_isSelfClosingTag && !_isClosingTag;
@@ -128,7 +133,9 @@ module XMLDecoder(
 			_isTagKey         <= 0;
 			_isTagValue       <= 0;
 			_isComment        <= 0;
-		end else if (vn) begin
+			_isDepthPush      <= 0;
+			_isDepthPop       <= 0;
+		end else if (vn || v) begin
 			// handle comments, look ahead to start, look behind to end
 			_isComment <=  ( (sn == "<" && snn == "!" && snnn == "-" && in == "-") || _isComment )
 						&& !(s == ">" && sp == "-" && spp == "-");
@@ -148,10 +155,12 @@ module XMLDecoder(
 				_isSelfClosingTag <= (_isSelfClosingTag || onSelfCloseTag) && !onTagStartNext;
 
 				// a tag is either opening, closing or self-closing. At the end of the tag
-				// (onTagClose) we adjust depth based on the three possibilities.
-
+				// (onTagClose) we adjust and flag changes to depth based on the three possibilities.
 				tagdepth <= tagdepth + (onTagClose && _isOpeningTag)
 							- (onTagClose && _isClosingTag);
+
+				_isDepthPush <= onTagClose && _isOpeningTag;
+				_isDepthPop  <= onTagClose && _isClosingTag;
 
 				if (onTagClose) begin
 					if (_isClosingTag || _isSelfClosingTag) begin
@@ -173,6 +182,8 @@ module XMLDecoder(
 	assign isTagKey   = _isTagKey;
 	assign isTagValue = _isTagValue;
 	assign isTagName  = _isTagName;
+	assign depthPush  = _isDepthPush;
+	assign depthPop   = _isDepthPop;
 
 endmodule
 
