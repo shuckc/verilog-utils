@@ -1,16 +1,28 @@
+[*]
+[*] GTKWave Analyzer v3.3.34 (w)1999-2012 BSI
+[*] Mon Apr 16 10:45:23 2012
+[*]
+[dumpfile] "bin/ohash.lxt"
+[savefile] "gtksav/ohash.sav"
 [timestart] 0
 [size] 1719 839
 [pos] -1 -1
-*-17.572342 560000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-17.572342 1205400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] jenkins_test.
+[sst_width] 197
+[signals_width] 118
+[sst_expanded] 1
+[sst_vpaned_height] 237
 @200
 -public
+@29
+jenkins_test.uut.CLOCK[0]
 @820
 jenkins_test.uut.value[7:0]
 @28
-jenkins_test.uut.sample
-jenkins_test.uut.started
-jenkins_test.uut.complete
+jenkins_test.uut.sample[0]
+jenkins_test.uut.started[0]
+jenkins_test.uut.complete[0]
 @22
 jenkins_test.uut.hash[31:0]
 @200
