@@ -1,3 +1,4 @@
+`timescale 1ns / 1ps
 // Copyright 2007 Altera Corporation. All rights reserved.
 // Altera products are protected under numerous U.S. and foreign patents,
 // maskwork rights, copyrights and other intellectual property laws.
