@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Engineer:		Chris Shucksmith
 // Description:		basic TCP test bench
-//	
+//
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +41,8 @@ module Tcp_test;
 		.mac( 48'hC471FEC856BF )
 	) tcp (
 		.CLOCK(CLOCK),
+		.tcp_src_port(16'd57284),
+		.tcp_src_ip( { 8'd10, 8'd210, 8'd50, 8'd28 } ),
 		.dataValid( streamvalid ),
 		.data( stream ),
 		.outDataValid( tcpdataValid ),
@@ -54,19 +56,24 @@ module Tcp_test;
 	integer rcount;
 
 	initial begin
-	
+
 		$dumpfile("bin/olittletoe.lxt");
 		$dumpvars(0,tcp);
 		rcount = 0;
 
-		#100 
+		#100
 		paused = 0;
-	
+
 		// Add stimulus here
 		while (~pcapfinished ) begin
 			// $display("stream: %8d %x %d %x %x %c", i, paused, pktcount, streamvalid, stream, stream);
 			#20
 			i = i+1;
+		end
+
+		if (rcount != 1) begin
+			$display(" tcp - expected one output byte, got %d values last %x", rcount, tcpdata );
+			$finish_and_return(-1);
 		end
 
 		$finish;
