@@ -57,7 +57,7 @@ module PcapParser
 			$finish_and_return(1);
 		end
 
-		file = $fopen(pcap_filename, "r");
+		file = $fopen(pcap_filename, "rb");
 		if (file == `NULL) begin
 			$display("can't read pcap input");
 			$finish_and_return(1);
@@ -81,7 +81,7 @@ module PcapParser
 	end
 
 	always @(posedge CLOCK)
-	begin	
+	begin
 		if (eof == 0 && diskSz == 0 && countIPG == 0) begin
 			// read packet header
 			// fields of interest are U32 so bear in mind the byte ordering when assembling
@@ -103,13 +103,13 @@ module PcapParser
 			countIPG <= ipg;	// reload interpacket gap counter
 
 		end else if ( diskSz > 0) begin
-			
+
 			// packet content is byte-aligned, no swapping required
 			if (~pause) begin
 				newpkt <= 0;
-				eof = $feof(file);
 				diskSz <= diskSz - 1;
 				data <= $fgetc(file);
+				eof = $feof(file);
 				if ( eof != 0 || diskSz == 1) begin
 					available <= 0;
 				end else begin
@@ -123,7 +123,7 @@ module PcapParser
 		end else if (eof != 0) begin
 			pcapfinished <= 1;	// terminal loop here
 		end
-		
+
 
 	end
 
