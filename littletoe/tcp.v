@@ -517,6 +517,9 @@ module Tcp
 						outnewpkt <= 0;
 					end
 			endcase
+		end else begin
+			// !dataValid
+			outDataValid <= 0;
 		end
 	end
 
