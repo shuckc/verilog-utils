@@ -30,7 +30,7 @@ module Tcp
 		output reg gapped = 0
 	);
 
-	parameter  [6:0]  sIDLE      = 6'd001;
+	parameter  [6:0]  sIDLE      = 6'd000;
 	parameter  [6:0]  sETH_MACD0 = 6'd002;
 	parameter  [6:0]  sETH_MACD1 = 6'd003;
 	parameter  [6:0]  sETH_MACD2 = 6'd004;
@@ -137,7 +137,7 @@ module Tcp
 	parameter  [15:0]  SZ_IP_TCP_NOOPTIONS	= 16'd20 + 16'd20;
 
 	// hot state
-	reg [7:0] pos = 1;
+	reg [7:0] pos = 0;
 
 	// Ethernet state
 	reg [12:0] eth_vlan = 0;
@@ -176,10 +176,6 @@ module Tcp
 	reg [7:0] counterEthIPTypeTCP = 0;
 	reg [7:0] counterEthIPTypeOSPF = 0;
 	reg [7:0] counterEthIPTypeErr = 0;
-
-	initial begin
-
-	end
 
 	always @(posedge CLOCK)	begin
 
