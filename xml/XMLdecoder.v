@@ -77,23 +77,17 @@ module XMLDecoder(
 	wire _isData = outValid && !intag && !_isComment;
 
 	// export the stack depth positions
-	wire [7:0] s0 = tagno[0];
-	wire [7:0] s1 = tagno[1];
-	wire [7:0] s2 = tagno[2];
-	wire [7:0] s3 = tagno[3];
-	wire [7:0] s4 = tagno[4];
-	wire [7:0] s5 = tagno[5];
-	wire [7:0] s6 = tagno[6];
-	wire [7:0] s7 = tagno[7];
+	assign s0 = tagno[0];
+	assign s1 = tagno[1];
+	assign s2 = tagno[2];
+	assign s3 = tagno[3];
+	assign s4 = tagno[4];
+	assign s5 = tagno[5];
+	assign s6 = tagno[6];
+	assign s7 = tagno[7];
 
-	// This will be replaced in synthesis with EBR reset vector
-	integer k;
-	initial begin
-		for (k = 0; k < 9; k = k + 1) begin
-			tagno[k] <= 0;
-		end
-	end
-	// END
+	// initialise to all zeros after configuration
+	initial $readmemh("stack_zeros.txt", tagno);
 
 	always @(posedge CLOCK) begin
 		if (inValid || vnn || vn || v) begin
