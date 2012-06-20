@@ -87,7 +87,7 @@ module XMLDecoder(
 	assign s7 = tagno[7];
 
 	// initialise to all zeros after configuration
-	initial $readmemh("stack_zeros.txt", tagno);
+	initial $readmemh("xml/stack_zeros.txt", tagno);
 
 	always @(posedge CLOCK) begin
 		if (inValid || vnn || vn || v) begin
