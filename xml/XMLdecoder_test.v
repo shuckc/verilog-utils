@@ -15,7 +15,8 @@ module XMLdecoder_test;
 	reg svalid = 0;
 	reg [7:0] stream;
 	reg reset  = 0;
-	reg newMsg = 1;
+	reg eop = 0;
+
 	// Outputs
 	wire [7:0] out;
     wire outValid;
@@ -44,7 +45,7 @@ module XMLdecoder_test;
 		.in(stream),
 		.inValid(svalid),
 		.reset(reset),
-		.newMsg(newMsg),
+		.inEop(eop),
 
 		.out(out),
 		.outValid(outValid),
@@ -70,7 +71,6 @@ module XMLdecoder_test;
 	always #5 CLOCK = ~CLOCK;
 	integer file;
 	integer r;
-	integer eof;
 	integer i;
 	integer overrun;
    	reg [7:0] outNoNL;
@@ -94,16 +94,19 @@ module XMLdecoder_test;
 		end
 
 		$display("Reading XML");
-		$display(" i    in   |  out     dp + -    ! t d n k v    stack 0 1 2 3 4 5 6 7");
+		$display("   ! comment, d data, t tag, n tagname, k tagkey, v tagvalue");
+		$display(" i    in   |  out     dp + -    ! d t n k v    stack 0 1 2 3 4 5 6 7");
 
 		// Wait 100 ns for global reset to finish
 		#100;
+		eop <= $feof(file) != 0;
 
 		// stimulus
-		while (overrun > 0) begin
+		while (~eop || outValid) begin
+			@(posedge CLOCK)
 			stream <= $fgetc(file);
-			newMsg <= 0;
 			svalid <= $feof(file) == 0;
+			eop <= $feof(file) != 0;
 			i <= i+1;
 			if ( !svalid ) begin
 				overrun <= overrun - 1;
@@ -111,9 +114,8 @@ module XMLdecoder_test;
 			outNoNL = (out == 10) ? "." : out;
 			$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
 				i, svalid, stream,
-				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isTag, isData, isTagName, isTagKey, isTagValue,
+				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
 				s0, s1, s2, s3, s4, s5, s6, s7);
-			#10;
 
 		end
 
@@ -126,6 +128,30 @@ module XMLdecoder_test;
 			$display("should be exactly one root element");
 			$finish_and_return(1);
 		end
+
+		@(posedge CLOCK)
+		$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
+				i, svalid, stream,
+				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
+				s0, s1, s2, s3, s4, s5, s6, s7);
+
+		@(posedge CLOCK)
+		$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
+				i, svalid, stream,
+				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
+				s0, s1, s2, s3, s4, s5, s6, s7);
+
+		if (tagDepth != 0) begin
+			$display("depth did not reset");
+			$finish_and_return(1);
+		end
+		if (s0 != 0) begin
+			$display("stack did not reset");
+			$finish_and_return(1);
+		end
+
+
+		#100;
 
 		$finish;
 
