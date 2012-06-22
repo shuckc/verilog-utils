@@ -10,7 +10,7 @@ http://wiki.wireshark.org/Development/LibpcapFileFormat
 
 littletoe (synth)
 -----------------
-Basic read-only MAC/IP/TCP stack to follow a specific TCP session at the data level, from wire-format packets.
+Basic line-speed read-only MAC/IP/TCP stack to follow a specific TCP session at the data level, from wire-format EthernetII packets.
 
 bcd (synth)
 -----------
