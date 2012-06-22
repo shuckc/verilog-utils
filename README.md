@@ -4,7 +4,7 @@ Modules
 
 pcap (sim)
 ----------
-Utility to replay a packets from Wireshark/tcpdump pcap file over a single-byte bus
+Pure Verilog module to replay a packets from Wireshark/tcpdump pcap file over a single-byte bus
 for use in network handling test benches.  
 http://wiki.wireshark.org/Development/LibpcapFileFormat
 
