@@ -22,6 +22,8 @@ module Tcp
 		input [7:0] data,
 		input [15:0] tcp_src_port,
 		input [31:0] tcp_src_ip,
+		input [15:0] tcp_dst_port,
+		input [31:0] tcp_dst_ip,
 
 		output reg outDataValid = 0,
 		output reg [7:0] outData = 0,
@@ -162,7 +164,11 @@ module Tcp
 	reg [31:0] tcpSeq = 0;
 	reg [31:0] tcpSeqBuf = 0;
 
-	reg tcp_matches = 0;
+	reg ms0=0,ms1=0,ms2=0,ms3=0,ms4=0,ms5=0; // match src ip+port
+	reg md0=0,md1=0,md2=0,md3=0,md4=0,md5=0; // match src ip+port
+
+	wire tcp_matches = ms0 && ms1 && ms2 && ms3 && ms4 && ms5 &&
+						md0 && md1 && md2 && md3 && md4 && md5;
 
 	// counters
 	reg [7:0] counterEthTypeARP = 0;
@@ -184,13 +190,15 @@ module Tcp
 			macdest <= 1;
 			outDataValid <= 0;
 			outnewpkt <= 0;
-			tcp_matches <= 0;
+			ms0 <= 0; ms1 <= 0; ms2 <= 0; ms3 <= 0; ms4 <= 0; ms5 <= 0; // match src ip+port
+			md0 <= 0; md1 <= 0; md2 <= 0; md3 <= 0; md4 <= 0; md5 <= 0; // match dest ip+port
 		end else if (dataValid) begin
 			case (pos)
 			sIDLE:	begin pos <= sIDLE;
 					outDataValid <= 0;
 					outnewpkt <= 0;
-					tcp_matches <= 0;
+					ms0 <= 0; ms1 <= 0; ms2 <= 0; ms3 <= 0; ms4 <= 0; ms5 <= 0; // match src ip+port
+					md0 <= 0; md1 <= 0; md2 <= 0; md3 <= 0; md4 <= 0; md5 <= 0; // match dest ip+port
 					end
 			sETH_MACD0:	begin
 						pos <= sETH_MACD1;
@@ -335,34 +343,38 @@ module Tcp
 			sIPV4_IPSRC0: begin
 						pos <= sIPV4_IPSRC1;
 						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub4 4bytes
-						tcp_matches <= (data == tcp_src_ip[31:24]);
+						ms0 <= (data == tcp_src_ip[31:24]);
 					end
 			sIPV4_IPSRC1: begin
 						pos <= sIPV4_IPSRC2;
-						tcp_matches <= tcp_matches && (data == tcp_src_ip[23:16]);
+						ms1 <= (data == tcp_src_ip[23:16]);
 					end
 			sIPV4_IPSRC2: begin
 						pos <= sIPV4_IPSRC3;
-						tcp_matches <= tcp_matches && (data == tcp_src_ip[15:8]);
+						ms2 <= (data == tcp_src_ip[15:8]);
 					end
 			sIPV4_IPSRC3: begin
 						pos <= sIPV4_IPDST0;
-						tcp_matches <= tcp_matches && (data == tcp_src_ip[7:0]);
+						ms3 <= (data == tcp_src_ip[7:0]);
 					end
 			sIPV4_IPDST0: begin
 						pos <= sIPV4_IPDST1;
 						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub5 4bytes
+						md0 <= (data == tcp_dst_ip[31:24]);
 					end
 			sIPV4_IPDST1: begin
 						pos <= sIPV4_IPDST2;
+						md1 <= (data == tcp_dst_ip[23:16]);
 					end
 			sIPV4_IPDST2: begin
 						pos <= sIPV4_IPDST3;
+						md2 <= (data == tcp_dst_ip[15:8]);
 					end
 			sIPV4_IPDST3: begin
 						// if options, loop through OPTIONS0-3 to skip 32bit words, or
 						// jump to state from pcol decoder
 						pos <= (IPV4_IHeaderLen == 0) ? IPV4_PCOL : sIPV4_OPTION0;
+						md3 <= (data == tcp_dst_ip[7:0]);
 					end
 			 // IPv4 OPTIONS loop
 			 sIPV4_OPTION0: begin
@@ -411,17 +423,19 @@ module Tcp
 			sTCP_SRCP0: begin
 						pos <= sTCP_SRCP1;
 						counterEthIPTypeTCP <= counterEthIPTypeTCP + 1;
-						tcp_matches <= tcp_matches && (data == tcp_src_port[15:8]);
+						ms4 <= (data == tcp_src_port[15:8]);
 					end
 			sTCP_SRCP1: begin
 						pos <= sTCP_DSTP0;
-						tcp_matches <= tcp_matches && (data == tcp_src_port[7:0]);
+						ms5 <= (data == tcp_src_port[7:0]);
 					end
 			sTCP_DSTP0: begin
 						pos <= sTCP_DSTP1;
+						md4 <= (data == tcp_dst_port[15:8]);
 					end
 			sTCP_DSTP1: begin
 						pos <= sTCP_SEQ0;
+						md5 <= (data == tcp_dst_port[7:0]);
 					end
 			// it's mandatory to buffer the SEQuence number as we don't know whether to latch
 			// to tcpSeqNum (SYN) or compare for gaploss (!SYN)
