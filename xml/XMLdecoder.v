@@ -72,7 +72,6 @@ module XMLDecoder(
  	reg vnn  = 0;
 	reg vn   = 0;
 	//g v    = 0;
-	reg vp   = 0;
 
 	reg [7:0] snnn = 0;
 	reg [7:0] snn  = 0;
@@ -80,7 +79,6 @@ module XMLDecoder(
 	//g [7:0] out  = 0;
 	reg [7:0] sp   = 0;
 	reg [7:0] spp  = 0;
-	reg [7:0] sppp = 0;
 
 	reg isClosingTag     = 0;
 	reg isSelfClosingTag = 0;
@@ -130,7 +128,7 @@ module XMLDecoder(
 			vnn       <= vnnn;
 			vn        <= vnn;
 			outValid  <= vn;
-			vp        <= outValid;
+
 			// ripple for data look ahead/behind
 			snnn      <= in;
 			snn       <= snnn;
@@ -138,7 +136,7 @@ module XMLDecoder(
 			out       <= sn;
 			sp        <= out;
 			spp       <= sp;
-			sppp      <= spp;
+
 		end else begin
 			outValid  <= 0;
 		end
