@@ -43,6 +43,8 @@ module Tcp_test;
 		.CLOCK(CLOCK),
 		.tcp_src_port(16'd57284),
 		.tcp_src_ip( { 8'd10, 8'd210, 8'd50, 8'd28 } ),
+		.tcp_dst_port(16'd4846),
+		.tcp_dst_ip( { 8'd10, 8'd210, 8'd144, 8'd11 } ),
 		.dataValid( streamvalid ),
 		.data( stream ),
 		.outDataValid( tcpdataValid ),

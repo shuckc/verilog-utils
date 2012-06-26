@@ -10,7 +10,7 @@ http://wiki.wireshark.org/Development/LibpcapFileFormat
 
 littletoe (synth)
 -----------------
-Basic line-speed read-only MAC/IP/TCP stack to follow a specific TCP session at the data level, from wire-format EthernetII packets.
+Basic 1G line-speed, read-only MAC/IP/TCP stack to follow a specific TCP session at the data level. Otherwise known as a TCP Offload Engine, or ToE. Works from a wire-format EthernetII MAC, and can simulate from .pcap files using `pcap` module above. Simply tune in the src/dest IP:port details and follow the gated data output.
 
 bcd (synth)
 -----------
