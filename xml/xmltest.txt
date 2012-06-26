@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-  <!-- by chris -->
+  <!-- by ########chris -->
 <note important="false">
 <to>Tove</to>
-<from>Jani &amp; Chris</from>
+<from>Jani &amp; Chris</from########>
 <heading>Reminder<!-- </to> -->x</heading>
 <body>Don't forget me this weekend!</body>
 <deleted/>

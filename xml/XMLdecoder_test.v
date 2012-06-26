@@ -20,6 +20,7 @@ module XMLdecoder_test;
 	// Outputs
 	wire [7:0] out;
     wire outValid;
+    wire outEop;
     wire isData;
     wire isTag;
     wire isTagName;
@@ -44,11 +45,11 @@ module XMLdecoder_test;
 		.CLOCK(CLOCK),
 		.in(stream),
 		.inValid(svalid),
-		.reset(reset),
 		.inEop(eop),
 
 		.out(out),
 		.outValid(outValid),
+		.outEop(outEop),
 		.isData(isData),
 		.isTag(isTag),
 		.isComment(isComment),
@@ -71,9 +72,9 @@ module XMLdecoder_test;
 	always #5 CLOCK = ~CLOCK;
 	integer file;
 	integer r;
-	integer i;
+	integer i, x;
 	integer overrun;
-   	reg [7:0] outNoNL;
+   	reg [7:0] outNoNL, inNoNL;
 
 	initial begin
 
@@ -95,52 +96,45 @@ module XMLdecoder_test;
 
 		$display("Reading XML");
 		$display("   ! comment, d data, t tag, n tagname, k tagkey, v tagvalue");
-		$display(" i    in   |  out     dp + -    ! d t n k v    stack 0 1 2 3 4 5 6 7");
+		$display("    i e v in   | v e out    dp + -    ! d t n k v    stack 0 1 2 3 4 5 6 7");
 
 		// Wait 100 ns for global reset to finish
 		#100;
 		eop <= $feof(file) != 0;
 
 		// stimulus
-		while (~eop || outValid) begin
+		while (overrun > 0) begin
 			@(posedge CLOCK)
-			stream <= $fgetc(file);
-			svalid <= $feof(file) == 0;
-			eop <= $feof(file) != 0;
+			x = $fgetc(file);
+			stream <= x;
+			svalid <= $feof(file) == 0 && x != "#";
+			eop <= $feof(file) != 0 && overrun == 10;
 			i <= i+1;
-			if ( !svalid ) begin
+			if ( $feof(file) != 0 ) begin
 				overrun <= overrun - 1;
 			end
 			outNoNL = (out == 10) ? "." : out;
-			$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
-				i, svalid, stream,
-				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
+			inNoNL = (stream == 10) ? "." : stream;
+			$display(" %4d %b %b %x %s | %b %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
+				i, eop, svalid, stream, inNoNL,
+				outValid, outEop, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
 				s0, s1, s2, s3, s4, s5, s6, s7);
+
+			if (overrun == 5) begin
+				// just after EOP
+				if (s0 != 1) begin
+					$display("should be exactly one root element");
+					$finish_and_return(1);
+				end
+				if (tagDepth != 0) begin
+					$display("depth did not finish flat");
+					$finish_and_return(1);
+				end
+			end
 
 		end
 
 		// post-test checks
-		if (tagDepth != 0) begin
-			$display("depth did not finish flat");
-			$finish_and_return(1);
-		end
-		if (s0 != 1) begin
-			$display("should be exactly one root element");
-			$finish_and_return(1);
-		end
-
-		@(posedge CLOCK)
-		$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
-				i, svalid, stream,
-				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
-				s0, s1, s2, s3, s4, s5, s6, s7);
-
-		@(posedge CLOCK)
-		$display(" %4d %b %x | %b %x %s   %02d %b %b    %b %b %b %b %b %b          %1d %1d %1d %1d %1d %1d %1d %1d ",
-				i, svalid, stream,
-				outValid, out, outNoNL, tagDepth, depthPush, depthPop, isComment, isData, isTag, isTagName, isTagKey, isTagValue,
-				s0, s1, s2, s3, s4, s5, s6, s7);
-
 		if (tagDepth != 0) begin
 			$display("depth did not reset");
 			$finish_and_return(1);
