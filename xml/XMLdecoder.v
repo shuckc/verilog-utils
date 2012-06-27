@@ -180,15 +180,21 @@ module XMLDecoder(
 
 				// a tag is either opening, closing or self-closing. At the end of the tag
 				// (onTagClose) we adjust and flag changes to depth based on the three possibilities.
-				tagDepth <= tagDepth + (onTagClose && isOpeningTag)
-							- (onTagClose && isClosingTag);
-
+				
+				if (onTagClose && isOpeningTag) begin
+					tagDepth <= tagDepth + 8'h1;
+				end else if (onTagClose && isClosingTag) begin
+					tagDepth <= tagDepth - 8'h1;
+				end else begin
+					tagDepth <= tagDepth;
+				end
+				
 				depthPush <= onTagClose && isOpeningTag;
 				depthPop  <= onTagClose && isClosingTag;
 
 				if (onTagClose) begin
 					if (isClosingTag || isSelfClosingTag) begin
-						tagno[tagDepth] <= tagno[tagDepth] + 1;
+						tagno[tagDepth] <= tagno[tagDepth] + 8'h1;
 						tagno[tagDepth+1] <= 0;
 					end
 				end
