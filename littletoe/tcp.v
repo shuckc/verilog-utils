@@ -32,26 +32,26 @@ module Tcp
 		output reg gapped = 0
 	);
 
-	parameter  [6:0]  sIDLE      = 6'd000;
-	parameter  [6:0]  sETH_MACD0 = 6'd002;
-	parameter  [6:0]  sETH_MACD1 = 6'd003;
-	parameter  [6:0]  sETH_MACD2 = 6'd004;
-	parameter  [6:0]  sETH_MACD3 = 6'd005;
-	parameter  [6:0]  sETH_MACD4 = 6'd006;
-	parameter  [6:0]  sETH_MACD5 = 6'd007;
-	parameter  [6:0]  sETH_MACS0 = 6'd008;
-	parameter  [6:0]  sETH_MACS1 = 6'd009;
-	parameter  [6:0]  sETH_MACS2 = 6'd010;
-	parameter  [6:0]  sETH_MACS3 = 6'd011;
-	parameter  [6:0]  sETH_MACS4 = 6'd012;
-	parameter  [6:0]  sETH_MACS5 = 6'd013;
-	parameter  [6:0]  sETH_BADMAC= 6'd014;
-	parameter  [6:0]  sETH_TYPE0 = 6'd015;	// type or -> 802.1Q header (TPID)
-	parameter  [6:0]  sETH_TYPE1 = 6'd016;	// type
+	localparam  [6:0]  sIDLE      = 6'd000;
+	localparam  [6:0]  sETH_MACD0 = 6'd002;
+	localparam  [6:0]  sETH_MACD1 = 6'd003;
+	localparam  [6:0]  sETH_MACD2 = 6'd004;
+	localparam  [6:0]  sETH_MACD3 = 6'd005;
+	localparam  [6:0]  sETH_MACD4 = 6'd006;
+	localparam  [6:0]  sETH_MACD5 = 6'd007;
+	localparam  [6:0]  sETH_MACS0 = 6'd008;
+	localparam  [6:0]  sETH_MACS1 = 6'd009;
+	localparam  [6:0]  sETH_MACS2 = 6'd010;
+	localparam  [6:0]  sETH_MACS3 = 6'd011;
+	localparam  [6:0]  sETH_MACS4 = 6'd012;
+	localparam  [6:0]  sETH_MACS5 = 6'd013;
+	localparam  [6:0]  sETH_BADMAC= 6'd014;
+	localparam  [6:0]  sETH_TYPE0 = 6'd015;	// type or -> 802.1Q header (TPID)
+	localparam  [6:0]  sETH_TYPE1 = 6'd016;	// type
 
-	parameter  [6:0]  sETH_802Q1 = 6'd017;	// 802.1Q header (TPID)
-	parameter  [6:0]  sETH_802Q2 = 6'd018;	//   vlan  (TCI)
-	parameter  [6:0]  sETH_802Q3 = 6'd019;	//   vlan  (TCI)  => sETH_TYPE0
+	localparam  [6:0]  sETH_802Q1 = 6'd017;	// 802.1Q header (TPID)
+	localparam  [6:0]  sETH_802Q2 = 6'd018;	//   vlan  (TCI)
+	localparam  [6:0]  sETH_802Q3 = 6'd019;	//   vlan  (TCI)  => sETH_TYPE0
 
 	// ethertypes
 	//  0x0800 IPv4
@@ -60,83 +60,83 @@ module Tcp
 	//  0x86DD IPV6
 	//
 	// error/counter states
-	parameter  [6:0]  sETH_TYPE_IPV6  = 6'd019;
-	parameter  [6:0]  sETH_TYPE_ERR   = 6'd020;
-	parameter  [6:0]  sETH_TYPE_ARP_0 = 6'd021;
-
+	localparam  [6:0]  sETH_TYPE_ERR   = 6'd020;
+	localparam  [6:0]  sETH_TYPE_ARP_0 = 6'd021;
+	localparam  [6:0]  sETH_TYPE_IPV6  = 6'd022;
+	
 	// IPV4 handing
-	parameter  [6:0]  sIPV4_VER_SZ	= 6'd030;
-	parameter  [6:0]  sIPV4_DSCP	= 6'd031;
-	parameter  [6:0]  sIPV4_LEN0	= 6'd032;
-	parameter  [6:0]  sIPV4_LEN1	= 6'd033;
-	parameter  [6:0]  sIPV4_ID0		= 6'd034;
-	parameter  [6:0]  sIPV4_ID1		= 6'd035;
-	parameter  [6:0]  sIPV4_FRAG0	= 6'd036;
-	parameter  [6:0]  sIPV4_FRAG1	= 6'd037;
-	parameter  [6:0]  sIPV4_TTL		= 6'd038;
-	parameter  [6:0]  sIPV4_PCOL	= 6'd039;
-	parameter  [6:0]  sIPV4_CHK0	= 6'd040;
-	parameter  [6:0]  sIPV4_CHK1	= 6'd041;
-	parameter  [6:0]  sIPV4_IPSRC0	= 6'd042;
-	parameter  [6:0]  sIPV4_IPSRC1	= 6'd043;
-	parameter  [6:0]  sIPV4_IPSRC2	= 6'd044;
-	parameter  [6:0]  sIPV4_IPSRC3	= 6'd045;
-	parameter  [6:0]  sIPV4_IPDST0	= 6'd046;
-	parameter  [6:0]  sIPV4_IPDST1	= 6'd047;
-	parameter  [6:0]  sIPV4_IPDST2	= 6'd048;
-	parameter  [6:0]  sIPV4_IPDST3	= 6'd049;
-	parameter  [6:0]  sIPV4_OPTION0		= 6'd050;	// ipv4 options repeat 4bytes
-	parameter  [6:0]  sIPV4_OPTION1		= 6'd051;
-	parameter  [6:0]  sIPV4_OPTION2		= 6'd052;
-	parameter  [6:0]  sIPV4_OPTION3		= 6'd053;
+	localparam  [6:0]  sIPV4_VER_SZ	= 6'd030;
+	localparam  [6:0]  sIPV4_DSCP	= 6'd031;
+	localparam  [6:0]  sIPV4_LEN0	= 6'd032;
+	localparam  [6:0]  sIPV4_LEN1	= 6'd033;
+	localparam  [6:0]  sIPV4_ID0		= 6'd034;
+	localparam  [6:0]  sIPV4_ID1		= 6'd035;
+	localparam  [6:0]  sIPV4_FRAG0	= 6'd036;
+	localparam  [6:0]  sIPV4_FRAG1	= 6'd037;
+	localparam  [6:0]  sIPV4_TTL		= 6'd038;
+	localparam  [6:0]  sIPV4_PCOL	= 6'd039;
+	localparam  [6:0]  sIPV4_CHK0	= 6'd040;
+	localparam  [6:0]  sIPV4_CHK1	= 6'd041;
+	localparam  [6:0]  sIPV4_IPSRC0	= 6'd042;
+	localparam  [6:0]  sIPV4_IPSRC1	= 6'd043;
+	localparam  [6:0]  sIPV4_IPSRC2	= 6'd044;
+	localparam  [6:0]  sIPV4_IPSRC3	= 6'd045;
+	localparam  [6:0]  sIPV4_IPDST0	= 6'd046;
+	localparam  [6:0]  sIPV4_IPDST1	= 6'd047;
+	localparam  [6:0]  sIPV4_IPDST2	= 6'd048;
+	localparam  [6:0]  sIPV4_IPDST3	= 6'd049;
+	localparam  [6:0]  sIPV4_OPTION0		= 6'd050;	// ipv4 options repeat 4bytes
+	localparam  [6:0]  sIPV4_OPTION1		= 6'd051;
+	localparam  [6:0]  sIPV4_OPTION2		= 6'd052;
+	localparam  [6:0]  sIPV4_OPTION3		= 6'd053;
 
 	// IPV4 protocol types
-	parameter  [7:0]  IPV4_PCOL_ICMP	= 8'h01;	// ICMP
-	parameter  [7:0]  IPV4_PCOL_IGMP	= 8'h02;	// IGMP
-	parameter  [7:0]  IPV4_PCOL_TCP		= 8'h06;	// TCP
-	parameter  [7:0]  IPV4_PCOL_UDP		= 8'h11;	// UDP
-	parameter  [7:0]  IPV4_PCOL_ENCAP	= 8'h62;	// ENCAP
-	parameter  [7:0]  IPV4_PCOL_OSPF	= 8'h59;	// OSPF
+	localparam  [7:0]  IPV4_PCOL_ICMP	= 8'h01;	// ICMP
+	localparam  [7:0]  IPV4_PCOL_IGMP	= 8'h02;	// IGMP
+	localparam  [7:0]  IPV4_PCOL_TCP		= 8'h06;	// TCP
+	localparam  [7:0]  IPV4_PCOL_UDP		= 8'h11;	// UDP
+	localparam  [7:0]  IPV4_PCOL_ENCAP	= 8'h62;	// ENCAP
+	localparam  [7:0]  IPV4_PCOL_OSPF	= 8'h59;	// OSPF
 
 	// states to handle
-	parameter  [6:0]  sICMP0			= 6'd055;
-	parameter  [6:0]  sIGMP0			= 6'd056;
-	parameter  [6:0]  sUDP0				= 6'd057;
-	parameter  [6:0]  sIPV4_TYPE_ERR	= 6'd058;
-	parameter  [6:0]  sENCAP0			= 6'd059;
-	parameter  [6:0]  sOSPF				= 6'd060;
-	parameter  [6:0]  sARP0				= 6'd061;
+	localparam  [6:0]  sICMP0			= 6'd055;
+	localparam  [6:0]  sIGMP0			= 6'd056;
+	localparam  [6:0]  sUDP0				= 6'd057;
+	localparam  [6:0]  sIPV4_TYPE_ERR	= 6'd058;
+	localparam  [6:0]  sENCAP0			= 6'd059;
+	localparam  [6:0]  sOSPF				= 6'd060;
+	localparam  [6:0]  sARP0				= 6'd061;
 
-	parameter  [6:0]  sTCP_SRCP0		= 7'd070;
-	parameter  [6:0]  sTCP_SRCP1		= 7'd071;
-	parameter  [6:0]  sTCP_DSTP0		= 7'd072;
-	parameter  [6:0]  sTCP_DSTP1		= 7'd073;
-	parameter  [6:0]  sTCP_SEQ0			= 7'd074;
-	parameter  [6:0]  sTCP_SEQ1			= 7'd075;
-	parameter  [6:0]  sTCP_SEQ2			= 7'd076;
-	parameter  [6:0]  sTCP_SEQ3			= 7'd077;
-	parameter  [6:0]  sTCP_ACK0			= 7'd078;
-	parameter  [6:0]  sTCP_ACK1			= 7'd079;
-	parameter  [6:0]  sTCP_ACK2			= 7'd080;
-	parameter  [6:0]  sTCP_ACK3			= 7'd081;
-	parameter  [6:0]  sTCP_DATAOFF		= 7'd082;
-	parameter  [6:0]  sTCP_FLAGS		= 7'd083;
-	parameter  [6:0]  sTCP_WINSZ0		= 7'd084;
-	parameter  [6:0]  sTCP_WINSZ1		= 7'd085;
-	parameter  [6:0]  sTCP_CHK0			= 7'd086;
-	parameter  [6:0]  sTCP_CHK1			= 7'd087;
-	parameter  [6:0]  sTCP_URG0			= 7'd088;
-	parameter  [6:0]  sTCP_URG1			= 7'd089;
-	parameter  [6:0]  sTCP_OPT0			= 7'd090;
-	parameter  [6:0]  sTCP_OPT1			= 7'd091;
-	parameter  [6:0]  sTCP_OPT2			= 7'd092;
-	parameter  [6:0]  sTCP_OPT3			= 7'd093;
+	localparam  [6:0]  sTCP_SRCP0		= 7'd070;
+	localparam  [6:0]  sTCP_SRCP1		= 7'd071;
+	localparam  [6:0]  sTCP_DSTP0		= 7'd072;
+	localparam  [6:0]  sTCP_DSTP1		= 7'd073;
+	localparam  [6:0]  sTCP_SEQ0			= 7'd074;
+	localparam  [6:0]  sTCP_SEQ1			= 7'd075;
+	localparam  [6:0]  sTCP_SEQ2			= 7'd076;
+	localparam  [6:0]  sTCP_SEQ3			= 7'd077;
+	localparam  [6:0]  sTCP_ACK0			= 7'd078;
+	localparam  [6:0]  sTCP_ACK1			= 7'd079;
+	localparam  [6:0]  sTCP_ACK2			= 7'd080;
+	localparam  [6:0]  sTCP_ACK3			= 7'd081;
+	localparam  [6:0]  sTCP_DATAOFF		= 7'd082;
+	localparam  [6:0]  sTCP_FLAGS		= 7'd083;
+	localparam  [6:0]  sTCP_WINSZ0		= 7'd084;
+	localparam  [6:0]  sTCP_WINSZ1		= 7'd085;
+	localparam  [6:0]  sTCP_CHK0			= 7'd086;
+	localparam  [6:0]  sTCP_CHK1			= 7'd087;
+	localparam  [6:0]  sTCP_URG0			= 7'd088;
+	localparam  [6:0]  sTCP_URG1			= 7'd089;
+	localparam  [6:0]  sTCP_OPT0			= 7'd090;
+	localparam  [6:0]  sTCP_OPT1			= 7'd091;
+	localparam  [6:0]  sTCP_OPT2			= 7'd092;
+	localparam  [6:0]  sTCP_OPT3			= 7'd093;
 
-	parameter  [6:0]  sTCP_DATA			= 7'd095;
+	localparam  [6:0]  sTCP_DATA			= 7'd095;
 
 
 	// fixed size of an IP header (20) and TCP header (20) without any optional headers
-	parameter  [15:0]  SZ_IP_TCP_NOOPTIONS	= 16'd20 + 16'd20;
+	localparam  [15:0]  SZ_IP_TCP_NOOPTIONS	= 16'd20 + 16'd20;
 
 	// hot state
 	reg [7:0] pos = 0;
