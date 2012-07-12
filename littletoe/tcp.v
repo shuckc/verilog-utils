@@ -63,7 +63,7 @@ module Tcp
 	localparam  [6:0]  sETH_TYPE_ERR   = 6'd020;
 	localparam  [6:0]  sETH_TYPE_ARP_0 = 6'd021;
 	localparam  [6:0]  sETH_TYPE_IPV6  = 6'd022;
-	
+
 	// IPV4 handing
 	localparam  [6:0]  sIPV4_VER_SZ	= 6'd030;
 	localparam  [6:0]  sIPV4_DSCP	= 6'd031;
@@ -524,6 +524,7 @@ module Tcp
 						pos <= (tcpData != 1) ? sTCP_DATA : sIDLE;	// 1 if this is last byte
 						outDataValid <= tcp_matches;
 						outData <= data;
+						tcpData <= tcpData - 1;
 						outnewpkt <= 0;
 					end
 			endcase
