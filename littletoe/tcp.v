@@ -143,7 +143,6 @@ module Tcp
 
 	// Ethernet state
 	reg [12:0] eth_vlan = 0;
-	reg macdest = 1;
 	reg runt = 0;
 
 	// IPv4 state
@@ -151,7 +150,7 @@ module Tcp
 									// except first, since value in [4:7] byte 0 so
 									// defer decrement until byte 2.
 	reg [15:0] IPV4_Size = 0;
-	reg [6:0]  IPV4_PCOL = 0;
+	reg [7:0]  IPV4_Pcol = 0;
 
 	// TCP handling
 	reg tcpFlagSYN = 0;
@@ -164,8 +163,10 @@ module Tcp
 	reg [31:0] tcpSeq = 0;
 	reg [31:0] tcpSeqBuf = 0;
 
+	// we don't need to reset these in sIDLE as they are asigned before tcp_matches is read
 	reg ms0=0,ms1=0,ms2=0,ms3=0,ms4=0,ms5=0; // match src ip+port
 	reg md0=0,md1=0,md2=0,md3=0,md4=0,md5=0; // match src ip+port
+	reg me0=0,me1=0,me2=0,me3=0,me4=0,me5=0; // match src MAC
 
 	wire tcp_matches = ms0 && ms1 && ms2 && ms3 && ms4 && ms5 &&
 						md0 && md1 && md2 && md3 && md4 && md5;
@@ -186,369 +187,329 @@ module Tcp
 	always @(posedge CLOCK)	begin
 
 		if (newpkt) begin
-			pos 	<=  sETH_MACD0;
-			macdest <= 1;
-			outDataValid <= 0;
-			outnewpkt <= 0;
-			ms0 <= 0; ms1 <= 0; ms2 <= 0; ms3 <= 0; ms4 <= 0; ms5 <= 0; // match src ip+port
-			md0 <= 0; md1 <= 0; md2 <= 0; md3 <= 0; md4 <= 0; md5 <= 0; // match dest ip+port
+			pos <= sETH_MACD0;
 		end else if (dataValid) begin
 			case (pos)
-			sIDLE:	begin pos <= sIDLE;
-					outDataValid <= 0;
-					outnewpkt <= 0;
-					ms0 <= 0; ms1 <= 0; ms2 <= 0; ms3 <= 0; ms4 <= 0; ms5 <= 0; // match src ip+port
-					md0 <= 0; md1 <= 0; md2 <= 0; md3 <= 0; md4 <= 0; md5 <= 0; // match dest ip+port
-					end
-			sETH_MACD0:	begin
-						pos <= sETH_MACD1;
-						macdest <= data == mac[47:40];
-					end
-			sETH_MACD1:	begin
-						pos <= sETH_MACD2;
-						macdest <= macdest & (data == mac[39:32]);
-					end
-			sETH_MACD2:	begin
-						pos <= sETH_MACD3;
-						macdest <= macdest & (data == mac[31:24]);
-					end
-			sETH_MACD3:	begin
-						pos <= sETH_MACD4;
-						macdest <= macdest & (data == mac[23:16]);
-					end
-			sETH_MACD4:	begin
-						pos <= sETH_MACD5;
-						macdest <= macdest & (data == mac[15:8]);
-					end
-			sETH_MACD5:	begin
-						pos <= sETH_MACS0;
-						macdest <= macdest & (data == mac[7:0]);
-					end
-			sETH_MACS0:	begin
-						pos <= sETH_MACS1;
-					end
-			sETH_MACS1:	begin
-						pos <= sETH_MACS2;
-					end
-			sETH_MACS2:	begin
-						pos <= sETH_MACS3;
-					end
-			sETH_MACS3:	begin
-						pos <= sETH_MACS4;
-					end
-			sETH_MACS4:	begin
-						pos <= sETH_MACS5;
-					end
-			sETH_MACS5:	begin
-						pos <= sETH_TYPE0;
-					end
-			sETH_BADMAC: begin
-						pos <= sIDLE;
-						counterEthMACNotUs <= counterEthMACNotUs + 1;
-					end
-			sETH_TYPE0: begin
-						// can tell if we are vlan/IPV6 ethertypes, so fork
-						// to avoid storing upper type byte for later parsing
-						pos <=  (data == 8'h81) ? sETH_802Q1 :
-							   ((data == 8'h86) ? sETH_TYPE_IPV6 :
-							   ((data == 8'h08) ? sETH_TYPE1 : sETH_TYPE_ERR));
-					end
-			sETH_TYPE_ERR: begin
-						pos <= sIDLE;
-						counterEthTypeErr <= counterEthTypeErr + 1;
-					end
-			sETH_TYPE_IPV6: begin
-						pos <= sIDLE;
-						counterEthTypeIPV6 <= counterEthTypeIPV6 + 1;
-					end
-			sETH_TYPE1: begin
+				sIDLE:	pos <= (newpkt) ? sETH_MACD0 : sIDLE;
+				sETH_MACD0:	pos <= sETH_MACD1;
+				sETH_MACD1:	pos <= sETH_MACD2;
+				sETH_MACD2:	pos <= sETH_MACD3;
+				sETH_MACD3:	pos <= sETH_MACD4;
+				sETH_MACD4:	pos <= sETH_MACD5;
+				sETH_MACD5:	pos <= sETH_MACS0;
+				sETH_MACS0:	pos <= sETH_MACS1;
+				sETH_MACS1:	pos <= sETH_MACS2;
+				sETH_MACS2:	pos <= sETH_MACS3;
+				sETH_MACS3:	pos <= sETH_MACS4;
+				sETH_MACS4:	pos <= sETH_MACS5;
+				sETH_MACS5:	pos <= sETH_TYPE0;
+
+				sETH_TYPE0:
+						// can tell if we are vlan/IPV6 ethertypes from upper byte of TYPE
+						// so fork to avoid storing upper type byte for later parsing
+						case (data)
+							8'h81: pos <= sETH_802Q1;
+							8'h86: pos <= sETH_TYPE_IPV6;
+							8'h08: pos <= sETH_TYPE1;
+							default: pos <= sETH_TYPE_ERR;
+						endcase
+				sETH_TYPE_ERR: begin
+							pos <= sIDLE;
+							counterEthTypeErr <= counterEthTypeErr + 1;
+						end
+				sETH_TYPE_IPV6: begin
+							pos <= sIDLE;
+							counterEthTypeIPV6 <= counterEthTypeIPV6 + 1;
+						end
+				sETH_TYPE1:
 						// can now fork lower byte of ethertype decoding
-						pos <= (data == 8'h00) ? sIPV4_VER_SZ :
-							   ((data == 8'h06) ? sARP0 :
-							   sETH_TYPE_ERR);
-					end
-			// extended VLAN tag decoding states
-			sETH_802Q1: begin
-						pos <= sETH_802Q2;	// data = 00
-					end
-			sETH_802Q2: begin
-						pos <= sETH_802Q3;	// data = TCI high byte
-						eth_vlan[12:9] <= data[3:0];
-					end
-			sETH_802Q3: begin
-						// TRICK: after soaking up the VLAN header, jump
-						// back to the ethertype states
-						pos <= sETH_TYPE0;	// data = TCI low byte (vlan TCI[12:0])
-						eth_vlan[7:0] <= data[7:0];
-					end
+						case (data)
+							8'h00: pos <= sIPV4_VER_SZ;
+							8'h06: pos <= sARP0;
+							default: pos <= sETH_TYPE_ERR;
+						endcase
+				// extended VLAN tag decoding states
+				sETH_802Q1: pos <= sETH_802Q2;	// data = 00
+				sETH_802Q2: begin
+								pos <= sETH_802Q3;	// data = TCI high byte
+								// save VLAN tag
+								eth_vlan[12:9] <= data[3:0];
+						end
+				// TRICK: after soaking up the VLAN header, jump back to the ethertype state
+				sETH_802Q3: begin
+								pos <= sETH_TYPE0;	// data = TCI low byte (vlan TCI[12:0])
+								eth_vlan[7:0] <= data[7:0];
+						end
+				// content states
+				sARP0:		begin
+								pos <= sIDLE;
+								counterEthTypeARP <= counterEthTypeARP + 1;
+						end
+				// IPv4
+				sIPV4_VER_SZ: begin
+							pos <= sIPV4_DSCP;
+							counterEthTypeIPV4 <= counterEthTypeIPV4 + 1;
+							IPV4_IHeaderLen <= data[3:0];
+						end
+				sIPV4_DSCP:	begin
+							pos <= sIPV4_LEN0;
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub1 4bytes
+						end
+				sIPV4_LEN0:	begin
+							pos <= sIPV4_LEN1;
+							IPV4_Size[15:8] <= data;
+						end
+				sIPV4_LEN1:	begin
+							pos <= sIPV4_ID0;
+							IPV4_Size[7:0] <= data;
+						end
+				sIPV4_ID0:	begin
+							pos <= sIPV4_ID1;
+							tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;	// TCP data size assuming no IPV4 options, no TCP options
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
+						end
+				sIPV4_ID1:	begin
+							pos <= sIPV4_FRAG0;
+						end
+				sIPV4_FRAG0:	begin
+							pos <= sIPV4_FRAG1;
+						end
+				sIPV4_FRAG1:	begin
+							pos <= sIPV4_TTL;
+						end
+				sIPV4_TTL:	begin
+							pos <= sIPV4_PCOL;
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub3 4bytes
+						end
+				sIPV4_PCOL:	begin
+							pos <= sIPV4_CHK0;
+							IPV4_Pcol <= data;
+						end
+				sIPV4_CHK0:	begin
+							pos <= sIPV4_CHK1;
+						end
+				sIPV4_CHK1:	begin
+							pos <= sIPV4_IPSRC0;
+						end
+				sIPV4_IPSRC0: begin
+							pos <= sIPV4_IPSRC1;
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub4 4bytes
+							ms0 <= (data == tcp_src_ip[31:24]);
+						end
+				sIPV4_IPSRC1: begin
+							pos <= sIPV4_IPSRC2;
+							ms1 <= (data == tcp_src_ip[23:16]);
+						end
+				sIPV4_IPSRC2: begin
+							pos <= sIPV4_IPSRC3;
+							ms2 <= (data == tcp_src_ip[15:8]);
+						end
+				sIPV4_IPSRC3: begin
+							pos <= sIPV4_IPDST0;
+							ms3 <= (data == tcp_src_ip[7:0]);
+						end
+				sIPV4_IPDST0: begin
+							pos <= sIPV4_IPDST1;
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub5 4bytes
+							md0 <= (data == tcp_dst_ip[31:24]);
+						end
+				sIPV4_IPDST1: begin
+							pos <= sIPV4_IPDST2;
+							md1 <= (data == tcp_dst_ip[23:16]);
+						end
+				sIPV4_IPDST2: begin
+							pos <= sIPV4_IPDST3;
+							md2 <= (data == tcp_dst_ip[15:8]);
+						end
+				sIPV4_IPDST3: begin
+							// if options, loop through OPTIONS0-3 to skip 32bit words, else
+							// jump to procotol state saved from pcol byte
+							if (IPV4_IHeaderLen == 0)
+								case (IPV4_Pcol)
+									IPV4_PCOL_ICMP: pos <= sICMP0;
+								  	IPV4_PCOL_IGMP: pos <= sIGMP0;
+								  	IPV4_PCOL_TCP: pos <= sTCP_SRCP0;
+								  	IPV4_PCOL_UDP: pos <= sUDP0;
+								  	IPV4_PCOL_ENCAP: pos <= sIPV4_TYPE_ERR;
+								  	IPV4_PCOL_OSPF: pos <= sOSPF;
+								   	default: pos <= sIPV4_TYPE_ERR;
+								endcase
+							else pos <= sIPV4_OPTION0;
+							md3 <= (data == tcp_dst_ip[7:0]);
+						end
+				 // IPv4 OPTIONS loop
+				 sIPV4_OPTION0: begin
+							pos <= sIPV4_OPTION1;
+							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
+							tcpData <= tcpData - 1;
+						end
+				 sIPV4_OPTION1: begin
+							pos <= sIPV4_OPTION2;
+							tcpData <= tcpData - 1;
+						end
+				 sIPV4_OPTION2: begin
+							pos <= sIPV4_OPTION3;
+							tcpData <= tcpData - 1;
+						end
+				 sIPV4_OPTION3: begin
+							// fork back to OPTION0 or IPV4_PCOL
+							if (IPV4_IHeaderLen == 0)
+								case (IPV4_Pcol)
+									IPV4_PCOL_ICMP: pos <= sICMP0;
+								  	IPV4_PCOL_IGMP: pos <= sIGMP0;
+								  	IPV4_PCOL_TCP: pos <= sTCP_SRCP0;
+								  	IPV4_PCOL_UDP: pos <= sUDP0;
+								  	IPV4_PCOL_ENCAP: pos <= sIPV4_TYPE_ERR;
+								  	IPV4_PCOL_OSPF: pos <= sOSPF;
+								   	default: pos <= sIPV4_TYPE_ERR;
+								endcase
+							else pos <= sIPV4_OPTION0;
+							tcpData <= tcpData - 1;
+						end
+				// TCP states
+				sICMP0:	begin
+							pos <= sIDLE;
+							counterEthIPTypeICMP <= counterEthIPTypeICMP + 1;
+						end
+				sIGMP0:	begin
+							pos <= sIDLE;
+							counterEthIPTypeIGMP <= counterEthIPTypeIGMP + 1;
+						end
 
-			// content states
-			sARP0:		begin
-						pos <= sIDLE;
-						counterEthTypeARP <= counterEthTypeARP + 1;
-					end
+				sUDP0:	begin
+							pos <= sIDLE;
+							counterEthIPTypeUDP <= counterEthIPTypeUDP + 1;
+						end
+				sIPV4_TYPE_ERR: begin
+							pos <= sIDLE;
+							counterEthIPTypeErr <= counterEthIPTypeErr + 1;
+						end
+				sOSPF: begin
+							pos <= sIDLE;
+							counterEthIPTypeOSPF <= counterEthIPTypeOSPF + 1;
+						end
 
-			// IPv4
-			sIPV4_VER_SZ:	begin
-						pos <= sIPV4_DSCP;
-						counterEthTypeIPV4 <= counterEthTypeIPV4 + 1;
-						IPV4_IHeaderLen <= data[3:0];
-					end
-			sIPV4_DSCP:	begin
-						pos <= sIPV4_LEN0;
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub1 4bytes
-					end
-			sIPV4_LEN0:	begin
-						pos <= sIPV4_LEN1;
-						IPV4_Size[15:8] <= data;
-					end
-			sIPV4_LEN1:	begin
-						pos <= sIPV4_ID0;
-						IPV4_Size[7:0] <= data;
-					end
-			sIPV4_ID0:	begin
-						pos <= sIPV4_ID1;
-						tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;	// TCP data size assuming no IPV4 options, no TCP options
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
-					end
-			sIPV4_ID1:	begin
-						pos <= sIPV4_FRAG0;
-					end
-			sIPV4_FRAG0:	begin
-						pos <= sIPV4_FRAG1;
-					end
-			sIPV4_FRAG1:	begin
-						pos <= sIPV4_TTL;
-					end
-			sIPV4_TTL:	begin
-						pos <= sIPV4_PCOL;
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub3 4bytes
-					end
-			sIPV4_PCOL:	begin
-						pos <= sIPV4_CHK0;
-						IPV4_PCOL <= (data == IPV4_PCOL_ICMP) ? sICMP0 :
-							  	 	(data == IPV4_PCOL_IGMP) ? sIGMP0 :
-							  	 	(data == IPV4_PCOL_TCP)  ? sTCP_SRCP0 :
-							  	 	(data == IPV4_PCOL_UDP)  ? sUDP0 :
-							  	 	(data == IPV4_PCOL_ENCAP)? sIPV4_TYPE_ERR :
-							  	 	(data == IPV4_PCOL_OSPF) ? sOSPF :
-							   		sIPV4_TYPE_ERR;
-					end
-			sIPV4_CHK0:	begin
-						pos <= sIPV4_CHK1;
-					end
-			sIPV4_CHK1:	begin
-						pos <= sIPV4_IPSRC0;
-					end
-			sIPV4_IPSRC0: begin
-						pos <= sIPV4_IPSRC1;
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub4 4bytes
-						ms0 <= (data == tcp_src_ip[31:24]);
-					end
-			sIPV4_IPSRC1: begin
-						pos <= sIPV4_IPSRC2;
-						ms1 <= (data == tcp_src_ip[23:16]);
-					end
-			sIPV4_IPSRC2: begin
-						pos <= sIPV4_IPSRC3;
-						ms2 <= (data == tcp_src_ip[15:8]);
-					end
-			sIPV4_IPSRC3: begin
-						pos <= sIPV4_IPDST0;
-						ms3 <= (data == tcp_src_ip[7:0]);
-					end
-			sIPV4_IPDST0: begin
-						pos <= sIPV4_IPDST1;
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub5 4bytes
-						md0 <= (data == tcp_dst_ip[31:24]);
-					end
-			sIPV4_IPDST1: begin
-						pos <= sIPV4_IPDST2;
-						md1 <= (data == tcp_dst_ip[23:16]);
-					end
-			sIPV4_IPDST2: begin
-						pos <= sIPV4_IPDST3;
-						md2 <= (data == tcp_dst_ip[15:8]);
-					end
-			sIPV4_IPDST3: begin
-						// if options, loop through OPTIONS0-3 to skip 32bit words, or
-						// jump to state from pcol decoder
-						pos <= (IPV4_IHeaderLen == 0) ? IPV4_PCOL : sIPV4_OPTION0;
-						md3 <= (data == tcp_dst_ip[7:0]);
-					end
-			 // IPv4 OPTIONS loop
-			 sIPV4_OPTION0: begin
-						pos <= sIPV4_OPTION1;
-						IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
-						tcpData <= tcpData - 1;
-					end
-			 sIPV4_OPTION1: begin
-						pos <= sIPV4_OPTION2;
-						tcpData <= tcpData - 1;
-					end
-			 sIPV4_OPTION2: begin
-						pos <= sIPV4_OPTION3;
-						tcpData <= tcpData - 1;
-					end
-			 sIPV4_OPTION3: begin
-						// fork back to OPTION0 or IPV4_PCOL
-						pos <= (IPV4_IHeaderLen == 0) ? IPV4_PCOL : sIPV4_OPTION0;
-						tcpData <= tcpData - 1;
-					end
-
-			// TCP states
-
-			sICMP0:	begin
-						pos <= sIDLE;
-						counterEthIPTypeICMP <= counterEthIPTypeICMP + 1;
-					end
-			sIGMP0:	begin
-						pos <= sIDLE;
-						counterEthIPTypeIGMP <= counterEthIPTypeIGMP + 1;
-					end
-
-			sUDP0:	begin
-						pos <= sIDLE;
-						counterEthIPTypeUDP <= counterEthIPTypeUDP + 1;
-					end
-			sIPV4_TYPE_ERR: begin
-						pos <= sIDLE;
-						counterEthIPTypeErr <= counterEthIPTypeErr + 1;
-					end
-			sOSPF: begin
-						pos <= sIDLE;
-						counterEthIPTypeOSPF <= counterEthIPTypeOSPF + 1;
-					end
-
-			sTCP_SRCP0: begin
-						pos <= sTCP_SRCP1;
-						counterEthIPTypeTCP <= counterEthIPTypeTCP + 1;
-						ms4 <= (data == tcp_src_port[15:8]);
-					end
-			sTCP_SRCP1: begin
-						pos <= sTCP_DSTP0;
-						ms5 <= (data == tcp_src_port[7:0]);
-					end
-			sTCP_DSTP0: begin
-						pos <= sTCP_DSTP1;
-						md4 <= (data == tcp_dst_port[15:8]);
-					end
-			sTCP_DSTP1: begin
-						pos <= sTCP_SEQ0;
-						md5 <= (data == tcp_dst_port[7:0]);
-					end
-			// it's mandatory to buffer the SEQuence number as we don't know whether to latch
-			// to tcpSeqNum (SYN) or compare for gaploss (!SYN)
-			sTCP_SEQ0: begin
-						pos <= sTCP_SEQ1;
-						tcpSeqBuf[31:24] <= data;
-					end
-			sTCP_SEQ1: begin
-						pos <= sTCP_SEQ2;
-						tcpSeqBuf[23:16] <= data;
-					end
-			sTCP_SEQ2: begin
-						pos <= sTCP_SEQ3;
-						tcpSeqBuf[15:8] <= data;
-					end
-			sTCP_SEQ3: begin
-						pos <= sTCP_ACK0;
-						tcpSeqBuf[7:0] <= data;
-					end
-			sTCP_ACK0: begin
-						pos <= sTCP_ACK1;
-					end
-			sTCP_ACK1: begin
-						pos <= sTCP_ACK2;
-					end
-			sTCP_ACK2: begin
-						pos <= sTCP_ACK3;
-					end
-			sTCP_ACK3: begin
-						pos <= sTCP_DATAOFF;
-					end
-			sTCP_DATAOFF: begin
-						pos <= sTCP_FLAGS;
-						tcpDataOff <= data[7:4];
-					end
-			sTCP_FLAGS: begin
-						pos <= sTCP_WINSZ0;
-						tcpFlagFIN <= data[0];
-						tcpFlagSYN <= data[1];
-						tcpFlagRST <= data[2];
-						tcpFlagPSH <= data[3];
-						tcpFlagACK <= data[4];
-					end
-			sTCP_WINSZ0: begin
-						pos <= sTCP_WINSZ1;
-					end
-			sTCP_WINSZ1: begin
-						pos <= sTCP_CHK0;
-					end
-			sTCP_CHK0: begin
-						pos <= sTCP_CHK1;
-					end
-			sTCP_CHK1: begin
-						pos <= sTCP_URG0;
-					end
-			sTCP_URG0: begin
-						pos <= sTCP_URG1;
-					end
-			sTCP_URG1: begin
-						pos <= (tcpDataOff != 5) ? sTCP_OPT0 : 	// 5 words in TCP if no options
-								(tcpData != 0) ? sTCP_DATA:		// 0 if this last byte (ie. no data)
-								sIDLE;
-						outnewpkt <= (tcpData != 0) && (tcpDataOff != 5) && tcp_matches;  // don't raise outnewpkt for SYN/ACK (packets with no data payload)
-					end
-			sTCP_OPT0: begin
-						pos <= sTCP_OPT1;
-						tcpDataOff <= tcpDataOff - 1;
-						tcpData <= tcpData - 1;
-					end
-			sTCP_OPT1: begin
-						pos <= sTCP_OPT2;
-						tcpData <= tcpData - 1;
-					end
-			sTCP_OPT2: begin
-						pos <= sTCP_OPT3;
-						tcpData <= tcpData - 1;
-					end
-			sTCP_OPT3: begin
-						pos <= (tcpDataOff != 5) ? sTCP_OPT0 :
-								(tcpData != 1) ? sTCP_DATA : 		// 1 if this is last byte
-								 sIDLE;
-						tcpData <= tcpData - 1;
-						outnewpkt <= (tcpData != 1) && tcp_matches;  // don't raise outnewpkt for SYN/ACK (packets with no data payload)
-					end
-			sTCP_DATA: begin
-						pos <= (tcpData != 1) ? sTCP_DATA : sIDLE;	// 1 if this is last byte
-						outDataValid <= tcp_matches;
-						outData <= data;
-						tcpData <= tcpData - 1;
-						outnewpkt <= 0;
-					end
+				sTCP_SRCP0: begin
+							pos <= sTCP_SRCP1;
+							counterEthIPTypeTCP <= counterEthIPTypeTCP + 1;
+							ms4 <= (data == tcp_src_port[15:8]);
+						end
+				sTCP_SRCP1: begin
+							pos <= sTCP_DSTP0;
+							ms5 <= (data == tcp_src_port[7:0]);
+						end
+				sTCP_DSTP0: begin
+							pos <= sTCP_DSTP1;
+							md4 <= (data == tcp_dst_port[15:8]);
+						end
+				sTCP_DSTP1: begin
+							pos <= sTCP_SEQ0;
+							md5 <= (data == tcp_dst_port[7:0]);
+						end
+				// it's mandatory to buffer the SEQuence number as we don't know whether to latch
+				// to tcpSeqNum (SYN) or compare for gaploss (!SYN)
+				sTCP_SEQ0: begin
+							pos <= sTCP_SEQ1;
+							tcpSeqBuf[31:24] <= data;
+						end
+				sTCP_SEQ1: begin
+							pos <= sTCP_SEQ2;
+							tcpSeqBuf[23:16] <= data;
+						end
+				sTCP_SEQ2: begin
+							pos <= sTCP_SEQ3;
+							tcpSeqBuf[15:8] <= data;
+						end
+				sTCP_SEQ3: begin
+							pos <= sTCP_ACK0;
+							tcpSeqBuf[7:0] <= data;
+						end
+				sTCP_ACK0: pos <= sTCP_ACK1;
+				sTCP_ACK1: pos <= sTCP_ACK2;
+				sTCP_ACK2: pos <= sTCP_ACK3;
+				sTCP_ACK3: pos <= sTCP_DATAOFF;
+				sTCP_DATAOFF: begin
+							pos <= sTCP_FLAGS;
+							// data offset in d-words, minimum 5
+							//  [SRCPDSTP] [SEQ] [ACK] [FLAGs/SZ] [CHK/URG] {[OPTS]} [data]
+							tcpDataOff <= data[7:4];
+						end
+				sTCP_FLAGS: begin
+							pos <= sTCP_WINSZ0;
+							tcpFlagFIN <= data[0];
+							tcpFlagSYN <= data[1];
+							tcpFlagRST <= data[2];
+							tcpFlagPSH <= data[3];
+							tcpFlagACK <= data[4];
+						end
+				sTCP_WINSZ0: pos <= sTCP_WINSZ1;
+				sTCP_WINSZ1: pos <= sTCP_CHK0;
+				sTCP_CHK0: pos <= sTCP_CHK1;
+				sTCP_CHK1: pos <= sTCP_URG0;
+				sTCP_URG0: pos <= sTCP_URG1;
+				sTCP_URG1: begin
+							pos <= (tcpDataOff != 5) ? sTCP_OPT0 : 	// 5 words in TCP if no options
+									(tcpData != 0) ? sTCP_DATA:		// 0 if this last byte (ie. no data)
+									sIDLE;
+						end
+				sTCP_OPT0: begin
+							pos <= sTCP_OPT1;
+							tcpDataOff <= tcpDataOff - 1; // we've read one dword of options, reduce tcpDataOff towards 5
+							tcpData <= tcpData - 1;
+						end
+				sTCP_OPT1: begin
+							pos <= sTCP_OPT2;
+							tcpData <= tcpData - 1;
+						end
+				sTCP_OPT2: begin
+							pos <= sTCP_OPT3;
+							tcpData <= tcpData - 1;
+						end
+				sTCP_OPT3: begin
+							pos <= (tcpDataOff != 5) ? sTCP_OPT0 :
+									(tcpData != 1) ? sTCP_DATA : 		// 1 if this is last byte
+									 sIDLE;
+							tcpData <= tcpData - 1;
+						end
+				sTCP_DATA: begin
+							pos <= (tcpData != 1) ? sTCP_DATA : sIDLE;	// 1 if this is last byte
+							tcpData <= tcpData - 1;
+						end
 			endcase
-		end else begin
-			// !dataValid
-			outDataValid <= 0;
+
+			if (pos == sETH_MACD0) me0 <= data == mac[47:40];
+			if (pos == sETH_MACD1) me1 <= data == mac[39:32];
+			if (pos == sETH_MACD2) me2 <= data == mac[31:24];
+			if (pos == sETH_MACD3) me3 <= data == mac[23:16];
+			if (pos == sETH_MACD4) me4 <= data == mac[15:8];
+			if (pos == sETH_MACD5) me5 <= data == mac[7:0];
+
 		end
-	end
 
-	always @(posedge CLOCK)	begin
-		// some elements of the design are idempotent so can be repeated while a state is held
-		// waiting for dataValid. Bring out to this block to avoid holding up the critical path.
+		// don't raise outnewpkt for SYN/ACK (packets with no data payload)
+		// When tcpDataOff has reduced to 5, we have consumed all the TCP header.
+		// Independantly, there might not be any tcp payload ("data") in the packet.
+		outnewpkt <= tcp_matches && dataValid && (
+						( (pos == sTCP_URG1) && (tcpData != 0) && (tcpDataOff == 5) ) ||
+		           		( (pos == sTCP_OPT3) && (tcpData != 0) && (tcpDataOff == 5) )
+		           	);
 
-		case (pos)
-			sTCP_WINSZ0: begin
-					if (tcpFlagSYN) begin
-						tcpSeq <= tcpSeqBuf;
-					end else begin
-						// no SYN... so tcpSeqBuf should match our "calculated" tcpSeq which has been
-						// incremented by the last data payload
-						gapped <= (tcpSeqBuf != tcpSeq);
-					end
-				end
-		endcase
+		outDataValid <= dataValid && tcp_matches && pos == sTCP_DATA;
+		outData <= data;
+
+        // some elements of the design are idempotent so can be repeated while a state is held
+        // waiting for dataValid. Bring out to this block.
+
+		if (pos == sTCP_WINSZ0) begin
+			if (tcpFlagSYN) begin
+				tcpSeq <= tcpSeqBuf;
+			end else begin
+				// no SYN... so tcpSeqBuf should match our "calculated" tcpSeq which has been
+				// incremented by the last data payload
+				gapped <= (tcpSeqBuf != tcpSeq);
+			end
+		end
+
 	end
 
 endmodule
