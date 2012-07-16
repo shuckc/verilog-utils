@@ -265,7 +265,6 @@ module Tcp
 						end
 				sIPV4_ID0:	begin
 							pos <= sIPV4_ID1;
-							tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;	// TCP data size assuming no IPV4 options, no TCP options
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
 						end
 				sIPV4_ID1:	begin
@@ -341,15 +340,12 @@ module Tcp
 				 sIPV4_OPTION0: begin
 							pos <= sIPV4_OPTION1;
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub2 4bytes
-							tcpData <= tcpData - 1;
 						end
 				 sIPV4_OPTION1: begin
 							pos <= sIPV4_OPTION2;
-							tcpData <= tcpData - 1;
 						end
 				 sIPV4_OPTION2: begin
 							pos <= sIPV4_OPTION3;
-							tcpData <= tcpData - 1;
 						end
 				 sIPV4_OPTION3: begin
 							// fork back to OPTION0 or IPV4_PCOL
@@ -364,7 +360,6 @@ module Tcp
 								   	default: pos <= sIPV4_TYPE_ERR;
 								endcase
 							else pos <= sIPV4_OPTION0;
-							tcpData <= tcpData - 1;
 						end
 				// TCP states
 				sICMP0:	begin
@@ -455,25 +450,21 @@ module Tcp
 				sTCP_OPT0: begin
 							pos <= sTCP_OPT1;
 							tcpDataOff <= tcpDataOff - 1; // we've read one dword of options, reduce tcpDataOff towards 5
-							tcpData <= tcpData - 1;
 						end
 				sTCP_OPT1: begin
 							pos <= sTCP_OPT2;
-							tcpData <= tcpData - 1;
 						end
 				sTCP_OPT2: begin
 							pos <= sTCP_OPT3;
-							tcpData <= tcpData - 1;
 						end
 				sTCP_OPT3: begin
 							pos <= (tcpDataOff != 5) ? sTCP_OPT0 :
 									(tcpData != 1) ? sTCP_DATA : 		// 1 if this is last byte
 									 sIDLE;
-							tcpData <= tcpData - 1;
 						end
 				sTCP_DATA: begin
 							pos <= (tcpData != 1) ? sTCP_DATA : sIDLE;	// 1 if this is last byte
-							tcpData <= tcpData - 1;
+
 						end
 			endcase
 
@@ -483,6 +474,15 @@ module Tcp
 			if (pos == sETH_MACD3) me3 <= data == mac[23:16];
 			if (pos == sETH_MACD4) me4 <= data == mac[15:8];
 			if (pos == sETH_MACD5) me5 <= data == mac[7:0];
+
+			// load TCP data size assuming no IPV4 options, no TCP options, then decrement during any optional states
+			if (pos == sIPV4_ID0) begin
+				tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;
+			end else if (pos == sIPV4_OPTION0 || pos == sIPV4_OPTION1 || pos == sIPV4_OPTION2 || pos == sIPV4_OPTION3
+						|| pos == sTCP_OPT0 || pos == sTCP_OPT1 || pos == sTCP_OPT2 || pos == sTCP_OPT3
+						|| pos == sTCP_DATA ) begin
+				tcpData <= tcpData - 1;
+			end
 
 		end
 
