@@ -1,61 +1,46 @@
 [*]
 [*] GTKWave Analyzer v3.3.34 (w)1999-2012 BSI
-[*] Mon Jun 11 17:54:20 2012
+[*] Wed Jul 18 15:11:46 2012
 [*]
 [dumpfile] "bin/olittletoe.lxt"
 [savefile] "gtksav/olittletoe.sav"
-[timestart] 260000
-[size] 1920 1178
+[timestart] 0
+[size] 1920 1174
 [pos] -1 -1
-*-21.175619 6930000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-18.175619 797000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] Tcp_test.
 [sst_width] 197
 [signals_width] 294
 [sst_expanded] 1
 [sst_vpaned_height] 356
-@28
-Tcp_test.tcp.CLOCK[0]
-Tcp_test.tcp.newpkt[0]
-@22
-Tcp_test.tcp.data[7:0]
-@25
-Tcp_test.tcp.data[7:0]
-@24
-Tcp_test.tcp.pos[7:0]
 @200
 -counters
+@28
+Tcp_test.tcp1.CLOCK[0]
 @22
-Tcp_test.tcp.counterEthMACNotUs[7:0]
-Tcp_test.tcp.counterEthTypeARP[7:0]
-Tcp_test.tcp.counterEthTypeErr[7:0]
-Tcp_test.tcp.counterEthTypeIPV4[7:0]
-Tcp_test.tcp.counterEthTypeIPV6[7:0]
-Tcp_test.tcp.counterEthIPTypeTCP[7:0]
+Tcp_test.tcp1.data[7:0]
+@28
+Tcp_test.tcp1.dataValid[0]
+Tcp_test.tcp1.newpkt[0]
 @200
 -flags
 @22
-Tcp_test.tcp.IPV4_IHeaderLen[3:0]
-Tcp_test.tcp.IPV4_Size[15:0]
-Tcp_test.tcp.IPV4_PCOL[6:0]
-Tcp_test.tcp.tcpDataOff[3:0]
-Tcp_test.tcp.tcpData[15:0]
-@28
-Tcp_test.tcp.tcpFlagACK[0]
-Tcp_test.tcp.tcpFlagFIN[0]
-Tcp_test.tcp.tcpFlagPSH[0]
-Tcp_test.tcp.tcpFlagRST[0]
-Tcp_test.tcp.tcpFlagSYN[0]
-Tcp_test.tcp.tcp_matches[0]
+Tcp_test.tcp1.pos[7:0]
+Tcp_test.tcp1.mda[5:0]
+Tcp_test.tcp1.mdb[5:0]
+Tcp_test.tcp1.mea[5:0]
+Tcp_test.tcp1.meb[5:0]
+@29
+Tcp_test.tcp1.msa[5:0]
+@22
+Tcp_test.tcp1.msb[5:0]
 @200
 -output
-@22
-Tcp_test.tcp.outData[7:0]
 @28
-Tcp_test.tcp.outDataValid[0]
+Tcp_test.tcp1.gappedA[0]
 @22
-Tcp_test.tcp.tcpSeq[31:0]
-Tcp_test.tcp.tcpSeqBuf[31:0]
+Tcp_test.tcp1.tcpSeqA[31:0]
 @28
-Tcp_test.tcp.gapped[0]
+Tcp_test.tcp1.tcp_matchA[0]
 [pattern_trace] 1
 [pattern_trace] 0

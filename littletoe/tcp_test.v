@@ -20,8 +20,9 @@ module Tcp_test;
 	wire pcapfinished;
 	wire newpkt;
 
-	wire [7:0] tcpdata;
-	wire tcpdataValid;
+	wire [7:0] tcpdata1, tcpdata2;
+	wire tcpdataValidA;
+	wire tcpdataValidB;
 
 	// Instantiate the Unit Under Test (UUT)
 	PcapParser #(
@@ -39,29 +40,58 @@ module Tcp_test;
 	Tcp #(
 		.port( 80 ),
 		.mac( 48'hC471FEC856BF )
-	) tcp (
+	) tcp1 (
 		.CLOCK(CLOCK),
-		.tcp_src_port(16'd57284),
-		.tcp_src_ip( { 8'd10, 8'd210, 8'd50, 8'd28 } ),
-		.tcp_dst_port(16'd4846),
-		.tcp_dst_ip( { 8'd10, 8'd210, 8'd144, 8'd11 } ),
+		.tcpA_src_port(16'd57284),
+		.tcpA_src_ip( { 8'd10, 8'd210, 8'd50, 8'd28 } ),
+		.tcpA_dst_port(16'd4846),
+		.tcpA_dst_ip( { 8'd10, 8'd210, 8'd144, 8'd11 } ),
+		.tcpB_src_port(16'd0),
+		.tcpB_src_ip( { 8'd0, 8'd0, 8'd0, 8'd0 } ),
+		.tcpB_dst_port(16'd0),
+		.tcpB_dst_ip( { 8'd0, 8'd0, 8'd0, 8'd0 } ),
 		.dataValid( streamvalid ),
 		.data( stream ),
-		.outDataValid( tcpdataValid ),
-		.outData( tcpdata ),
-		.newpkt( newpkt )
+		.newpkt( newpkt ),
+
+		.outDataMatchA( tcpdataValidA ),
+		.outData( tcpdata1 )
 	);
+
+
+	Tcp #(
+		.port( 80 ),
+		.mac( 48'hC471FEC856BF )
+	) tcp2 (
+		.CLOCK(CLOCK),
+		.tcpA_src_port(16'd57284),
+		.tcpA_src_ip( { 8'd0, 8'd0, 8'd0, 8'd0 } ),
+		.tcpA_dst_port(16'd0),
+		.tcpA_dst_ip( { 8'd0, 8'd0, 8'd0, 8'd0 } ),
+		.tcpB_src_port(16'd57284),
+		.tcpB_src_ip( { 8'd10, 8'd210, 8'd50, 8'd28 } ),
+		.tcpB_dst_port(16'd4846),
+		.tcpB_dst_ip( { 8'd10, 8'd210, 8'd144, 8'd11 } ),
+		.dataValid( streamvalid ),
+		.data( stream ),
+		.newpkt( newpkt ),
+
+		.outDataMatchB( tcpdataValidB ),
+		.outData( tcpdata2 )
+	);
+
+
 
 	always #10 CLOCK = ~CLOCK;
 
 	integer i;
-	integer rcount;
+	integer acount, bcount;
 
 	initial begin
 
 		$dumpfile("bin/olittletoe.lxt");
-		$dumpvars(0,tcp);
-		rcount = 0;
+		$dumpvars(0,tcp1, tcp2);
+		acount = 0; bcount = 0;
 
 		#100
 		paused = 0;
@@ -73,21 +103,35 @@ module Tcp_test;
 			i = i+1;
 		end
 
-		if (rcount != 1) begin
-			$display(" tcp - expected one output byte, got %d values last %x", rcount, tcpdata );
+		if (acount != 1) begin
+			$display(" tcp A - expected one output byte, got %d values last %x", acount, tcpdata1 );
 			$finish_and_return(-1);
 		end
+		if (bcount != 1) begin
+			$display(" tcp B - expected one output byte, got %d values last %x", bcount, tcpdata2 );
+			$finish_and_return(-1);
+		end
+
 
 		$finish;
 
 	end
 
 	always @(posedge CLOCK)	begin
-		if (tcpdataValid) begin
-			$display("tcp: %x ", tcpdata);
-			rcount = rcount + 1;
-			if (rcount > 1 || tcpdata != 8'h20 ) begin
-				$display(" tcp - expected one output byte, value 0x20, got %d values last %x", rcount, tcpdata );
+		if (tcpdataValidA) begin
+			$display("tcpA: %x ", tcpdata1);
+			acount = acount + 1;
+			if (acount > 1 || tcpdata1 != 8'h20 ) begin
+				$display(" tcp - expected one output byte, value 0x20, got %d values last %x", acount, tcpdata1 );
+				$finish_and_return(-1);
+			end
+		end
+
+		if (tcpdataValidB) begin
+			$display("tcpB: %x ", tcpdata2);
+			bcount = bcount + 1;
+			if (bcount > 1 || tcpdata2 != 8'h20 ) begin
+				$display(" tcp - expected one output byte, value 0x20, got %d values last %x", bcount, tcpdata2 );
 				$finish_and_return(-1);
 			end
 		end

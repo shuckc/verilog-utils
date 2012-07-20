@@ -20,16 +20,30 @@ module Tcp
 		input newpkt,
 		input dataValid,
 		input [7:0] data,
-		input [15:0] tcp_src_port,
-		input [31:0] tcp_src_ip,
-		input [15:0] tcp_dst_port,
-		input [31:0] tcp_dst_ip,
 
-		output reg outDataValid = 0,
+		// per session
+		input [15:0] tcpA_src_port,
+		input [31:0] tcpA_src_ip,
+		input [15:0] tcpA_dst_port,
+		input [31:0] tcpA_dst_ip,
+
+		input [15:0] tcpB_src_port,
+		input [31:0] tcpB_src_ip,
+		input [15:0] tcpB_dst_port,
+		input [31:0] tcpB_dst_ip,
+
 		output reg [7:0] outData = 0,
+		output reg outDataPayload = 0,
+		output reg outDataMatchA = 0,
+		output reg outDataMatchB = 0,
+
 		output reg outnewpkt = 0,
 		output reg [7:0] mss = 0,
-		output reg gapped = 0
+		output reg gappedA = 0,
+		output reg gappedB = 0,
+
+		output tcp_matchA,
+		output tcp_matchB
 	);
 
 	localparam  [6:0]  sIDLE      = 6'd000;
@@ -160,16 +174,26 @@ module Tcp
 	reg tcpFlagFIN = 0;
 	reg [15:0] tcpData = 0;
 	reg [3:0] tcpDataOff = 0;
-	reg [31:0] tcpSeq = 0;
 	reg [31:0] tcpSeqBuf = 0;
 
-	// we don't need to reset these in sIDLE as they are asigned before tcp_matches is read
-	reg ms0=0,ms1=0,ms2=0,ms3=0,ms4=0,ms5=0; // match src ip+port
-	reg md0=0,md1=0,md2=0,md3=0,md4=0,md5=0; // match src ip+port
-	reg me0=0,me1=0,me2=0,me3=0,me4=0,me5=0; // match src MAC
+	reg [31:0] tcpSeqA = 0;
+	reg [31:0] tcpSeqB = 0;
 
-	wire tcp_matches = ms0 && ms1 && ms2 && ms3 && ms4 && ms5 &&
-						md0 && md1 && md2 && md3 && md4 && md5;
+	// we don't need to reset these in sIDLE as they are asigned before tcp_matches is read
+	reg [5:0] msa=0; // match src ip+port
+	reg [5:0] mda=0; // match src ip+port
+	//reg [5:0] mea=0; // match src MAC
+
+	reg [5:0] msb=0; // match src ip+port
+	reg [5:0] mdb=0; // match src ip+port
+	//reg [5:0] meb=0; // match src MAC
+
+	//reg msb0=0,msb1=0,msb2=0,msb3=0,msb4=0,msb5=0; // match src ip+port
+	//reg mdb0=0,mdb1=0,mdb2=0,mdb3=0,mdb4=0,mdb5=0; // match src ip+port
+	//reg meb0=0,meb1=0,meb2=0,meb3=0,meb4=0,meb5=0; // match src MAC
+
+	wire tcp_matchA = (& msa) && (& mda);
+	wire tcp_matchB = (& msb) && (& mdb);
 
 	// counters
 	reg [7:0] counterEthTypeARP = 0;
@@ -293,32 +317,39 @@ module Tcp
 				sIPV4_IPSRC0: begin
 							pos <= sIPV4_IPSRC1;
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub4 4bytes
-							ms0 <= (data == tcp_src_ip[31:24]);
+							msa[0] <= (data == tcpA_src_ip[31:24]);
+							msb[0] <= (data == tcpB_src_ip[31:24]);
 						end
 				sIPV4_IPSRC1: begin
 							pos <= sIPV4_IPSRC2;
-							ms1 <= (data == tcp_src_ip[23:16]);
+							msa[1] <= (data == tcpA_src_ip[23:16]);
+							msb[1] <= (data == tcpB_src_ip[23:16]);
 						end
 				sIPV4_IPSRC2: begin
 							pos <= sIPV4_IPSRC3;
-							ms2 <= (data == tcp_src_ip[15:8]);
+							msa[2] <= (data == tcpA_src_ip[15:8]);
+							msb[2] <= (data == tcpB_src_ip[15:8]);
 						end
 				sIPV4_IPSRC3: begin
 							pos <= sIPV4_IPDST0;
-							ms3 <= (data == tcp_src_ip[7:0]);
+							msa[3] <= (data == tcpA_src_ip[7:0]);
+							msb[3] <= (data == tcpB_src_ip[7:0]);
 						end
 				sIPV4_IPDST0: begin
 							pos <= sIPV4_IPDST1;
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub5 4bytes
-							md0 <= (data == tcp_dst_ip[31:24]);
+							mda[0] <= (data == tcpA_dst_ip[31:24]);
+							mdb[0] <= (data == tcpB_dst_ip[31:24]);
 						end
 				sIPV4_IPDST1: begin
 							pos <= sIPV4_IPDST2;
-							md1 <= (data == tcp_dst_ip[23:16]);
+							mda[1] <= (data == tcpA_dst_ip[23:16]);
+							mdb[1] <= (data == tcpB_dst_ip[23:16]);
 						end
 				sIPV4_IPDST2: begin
 							pos <= sIPV4_IPDST3;
-							md2 <= (data == tcp_dst_ip[15:8]);
+							mda[2] <= (data == tcpA_dst_ip[15:8]);
+							mdb[2] <= (data == tcpB_dst_ip[15:8]);
 						end
 				sIPV4_IPDST3: begin
 							// if options, loop through OPTIONS0-3 to skip 32bit words, else
@@ -334,7 +365,8 @@ module Tcp
 								   	default: pos <= sIPV4_TYPE_ERR;
 								endcase
 							else pos <= sIPV4_OPTION0;
-							md3 <= (data == tcp_dst_ip[7:0]);
+							mda[3] <= (data == tcpA_dst_ip[7:0]);
+							mdb[3] <= (data == tcpB_dst_ip[7:0]);
 						end
 				 // IPv4 OPTIONS loop
 				 sIPV4_OPTION0: begin
@@ -387,19 +419,23 @@ module Tcp
 				sTCP_SRCP0: begin
 							pos <= sTCP_SRCP1;
 							counterEthIPTypeTCP <= counterEthIPTypeTCP + 1;
-							ms4 <= (data == tcp_src_port[15:8]);
+							msa[4] <= (data == tcpA_src_port[15:8]);
+							msb[4] <= (data == tcpB_src_port[15:8]);
 						end
 				sTCP_SRCP1: begin
 							pos <= sTCP_DSTP0;
-							ms5 <= (data == tcp_src_port[7:0]);
+							msa[5] <= (data == tcpA_src_port[7:0]);
+							msb[5] <= (data == tcpB_src_port[7:0]);
 						end
 				sTCP_DSTP0: begin
 							pos <= sTCP_DSTP1;
-							md4 <= (data == tcp_dst_port[15:8]);
+							mda[4] <= (data == tcpA_dst_port[15:8]);
+							mdb[4] <= (data == tcpB_dst_port[15:8]);
 						end
 				sTCP_DSTP1: begin
 							pos <= sTCP_SEQ0;
-							md5 <= (data == tcp_dst_port[7:0]);
+							mda[5] <= (data == tcpA_dst_port[7:0]);
+							mdb[5] <= (data == tcpB_dst_port[7:0]);
 						end
 				// it's mandatory to buffer the SEQuence number as we don't know whether to latch
 				// to tcpSeqNum (SYN) or compare for gaploss (!SYN)
@@ -468,33 +504,35 @@ module Tcp
 						end
 			endcase
 
-			if (pos == sETH_MACD0) me0 <= data == mac[47:40];
-			if (pos == sETH_MACD1) me1 <= data == mac[39:32];
-			if (pos == sETH_MACD2) me2 <= data == mac[31:24];
-			if (pos == sETH_MACD3) me3 <= data == mac[23:16];
-			if (pos == sETH_MACD4) me4 <= data == mac[15:8];
-			if (pos == sETH_MACD5) me5 <= data == mac[7:0];
+			// if (pos == sETH_MACD0) me0 <= data == mac[47:40];
+			// if (pos == sETH_MACD1) me1 <= data == mac[39:32];
+			// if (pos == sETH_MACD2) me2 <= data == mac[31:24];
+			// if (pos == sETH_MACD3) me3 <= data == mac[23:16];
+			// if (pos == sETH_MACD4) me4 <= data == mac[15:8];
+			// if (pos == sETH_MACD5) me5 <= data == mac[7:0];
 
-			// load TCP data size assuming no IPV4 options, no TCP options, then decrement during any optional states
-			if (pos == sIPV4_ID0) begin
-				tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;
-			end else if (pos == sIPV4_OPTION0 || pos == sIPV4_OPTION1 || pos == sIPV4_OPTION2 || pos == sIPV4_OPTION3
-						|| pos == sTCP_OPT0 || pos == sTCP_OPT1 || pos == sTCP_OPT2 || pos == sTCP_OPT3
-						|| pos == sTCP_DATA ) begin
-				tcpData <= tcpData - 1;
-			end
+		end
 
+		// load TCP data size assuming no IPV4 options, no TCP options, then decrement during any (valid) optional states
+		if (pos == sIPV4_ID0) begin
+			tcpData <= IPV4_Size - SZ_IP_TCP_NOOPTIONS;
+		end else if ((pos == sIPV4_OPTION0 || pos == sIPV4_OPTION1 || pos == sIPV4_OPTION2 || pos == sIPV4_OPTION3
+					|| pos == sTCP_OPT0 || pos == sTCP_OPT1 || pos == sTCP_OPT2 || pos == sTCP_OPT3
+					|| pos == sTCP_DATA ) && dataValid) begin
+			tcpData <= tcpData - 1;
 		end
 
 		// don't raise outnewpkt for SYN/ACK (packets with no data payload)
 		// When tcpDataOff has reduced to 5, we have consumed all the TCP header.
 		// Independantly, there might not be any tcp payload ("data") in the packet.
-		outnewpkt <= tcp_matches && dataValid && (
+		outnewpkt <= dataValid && (
 						( (pos == sTCP_URG1) && (tcpData != 0) && (tcpDataOff == 5) ) ||
 		           		( (pos == sTCP_OPT3) && (tcpData != 0) && (tcpDataOff == 5) )
 		           	);
 
-		outDataValid <= dataValid && tcp_matches && pos == sTCP_DATA;
+		outDataMatchA <= dataValid && tcp_matchA && pos == sTCP_DATA;
+		outDataMatchB <= dataValid && tcp_matchB && pos == sTCP_DATA;
+		outDataPayload <= dataValid && pos == sTCP_DATA;
 		outData <= data;
 
         // some elements of the design are idempotent so can be repeated while a state is held
@@ -502,11 +540,13 @@ module Tcp
 
 		if (pos == sTCP_WINSZ0) begin
 			if (tcpFlagSYN) begin
-				tcpSeq <= tcpSeqBuf;
+				if (tcp_matchA) tcpSeqA <= tcpSeqBuf;
+				if (tcp_matchB) tcpSeqB <= tcpSeqBuf;
 			end else begin
 				// no SYN... so tcpSeqBuf should match our "calculated" tcpSeq which has been
 				// incremented by the last data payload
-				gapped <= (tcpSeqBuf != tcpSeq);
+				gappedA <= (tcpSeqBuf != tcpSeqA) && tcp_matchA;
+				gappedB <= (tcpSeqBuf != tcpSeqB) && tcp_matchB;
 			end
 		end
 
