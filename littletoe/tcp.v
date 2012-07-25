@@ -22,28 +22,31 @@ module Tcp
 		input [7:0] data,
 
 		// per session
-		input [15:0] tcpA_src_port,
-		input [31:0] tcpA_src_ip,
-		input [15:0] tcpA_dst_port,
-		input [31:0] tcpA_dst_ip,
-
-		input [15:0] tcpB_src_port,
-		input [31:0] tcpB_src_ip,
-		input [15:0] tcpB_dst_port,
-		input [31:0] tcpB_dst_ip,
+		input [15:0] tcpA_src_port,     tcpB_src_port,      tcpC_src_port,      tcpD_src_port,
+		input [31:0] tcpA_src_ip,       tcpB_src_ip,        tcpC_src_ip,        tcpD_src_ip,
+		input [15:0] tcpA_dst_port,     tcpB_dst_port,      tcpC_dst_port,      tcpD_dst_port,
+		input [31:0] tcpA_dst_ip,       tcpB_dst_ip,        tcpC_dst_ip,        tcpD_dst_ip,
+		output reg   outDataMatchA = 0,
+		output reg   outDataMatchB = 0,
+		output reg   outDataMatchC = 0,
+		output reg   outDataMatchD = 0,
+		output       tcp_matchA,        tcp_matchB,         tcp_matchC,         tcp_matchD,
+		output reg   gappedA = 0,
+		output reg   gappedB = 0,
+		output reg   gappedC = 0,
+		output reg   gappedD = 0,
 
 		output reg [7:0] outData = 0,
 		output reg outDataPayload = 0,
-		output reg outDataMatchA = 0,
-		output reg outDataMatchB = 0,
-
 		output reg outnewpkt = 0,
-		output reg [7:0] mss = 0,
-		output reg gappedA = 0,
-		output reg gappedB = 0,
 
-		output tcp_matchA,
-		output tcp_matchB
+		output reg [15:0] tcp_src_port,
+		output reg [31:0] tcp_src_ip,
+		output reg [15:0] tcp_dst_port,
+		output reg [31:0] tcp_dst_ip,
+
+		output reg [7:0] mss = 0
+
 	);
 
 	localparam  [6:0]  sIDLE      = 6'd000;
@@ -176,24 +179,22 @@ module Tcp
 	reg [3:0] tcpDataOff = 0;
 	reg [31:0] tcpSeqBuf = 0;
 
-	reg [31:0] tcpSeqA = 0;
-	reg [31:0] tcpSeqB = 0;
+	reg [31:0] tcpSeqA = 0,  tcpSeqB = 0, tcpSeqC = 0, tcpSeqD = 0;
 
 	// we don't need to reset these in sIDLE as they are asigned before tcp_matches is read
 	reg [5:0] msa=0; // match src ip+port
 	reg [5:0] mda=0; // match src ip+port
-	//reg [5:0] mea=0; // match src MAC
-
 	reg [5:0] msb=0; // match src ip+port
 	reg [5:0] mdb=0; // match src ip+port
-	//reg [5:0] meb=0; // match src MAC
-
-	//reg msb0=0,msb1=0,msb2=0,msb3=0,msb4=0,msb5=0; // match src ip+port
-	//reg mdb0=0,mdb1=0,mdb2=0,mdb3=0,mdb4=0,mdb5=0; // match src ip+port
-	//reg meb0=0,meb1=0,meb2=0,meb3=0,meb4=0,meb5=0; // match src MAC
+	reg [5:0] msc=0; // match src ip+port
+	reg [5:0] mdc=0; // match src ip+port
+	reg [5:0] msd=0; // match src ip+port
+	reg [5:0] mdd=0; // match src ip+port
 
 	wire tcp_matchA = (& msa) && (& mda);
 	wire tcp_matchB = (& msb) && (& mdb);
+    wire tcp_matchC = (& msc) && (& mdc);
+	wire tcp_matchD = (& msd) && (& mdd);
 
 	// counters
 	reg [7:0] counterEthTypeARP = 0;
@@ -319,37 +320,58 @@ module Tcp
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub4 4bytes
 							msa[0] <= (data == tcpA_src_ip[31:24]);
 							msb[0] <= (data == tcpB_src_ip[31:24]);
+							msc[0] <= (data == tcpC_src_ip[31:24]);
+							msd[0] <= (data == tcpD_src_ip[31:24]);
+							tcp_src_ip[31:24] <= data;
 						end
 				sIPV4_IPSRC1: begin
 							pos <= sIPV4_IPSRC2;
 							msa[1] <= (data == tcpA_src_ip[23:16]);
 							msb[1] <= (data == tcpB_src_ip[23:16]);
+							msc[1] <= (data == tcpC_src_ip[23:16]);
+							msd[1] <= (data == tcpD_src_ip[23:16]);
+							tcp_src_ip[23:16] <= data;
 						end
 				sIPV4_IPSRC2: begin
 							pos <= sIPV4_IPSRC3;
 							msa[2] <= (data == tcpA_src_ip[15:8]);
 							msb[2] <= (data == tcpB_src_ip[15:8]);
+							msc[2] <= (data == tcpC_src_ip[15:8]);
+							msd[2] <= (data == tcpD_src_ip[15:8]);
+							tcp_src_ip[15:8] <= data;
 						end
 				sIPV4_IPSRC3: begin
 							pos <= sIPV4_IPDST0;
 							msa[3] <= (data == tcpA_src_ip[7:0]);
 							msb[3] <= (data == tcpB_src_ip[7:0]);
+							msc[3] <= (data == tcpC_src_ip[7:0]);
+							msd[3] <= (data == tcpD_src_ip[7:0]);
+							tcp_src_ip[7:0] <= data;
 						end
 				sIPV4_IPDST0: begin
 							pos <= sIPV4_IPDST1;
 							IPV4_IHeaderLen <= IPV4_IHeaderLen - 1;	// pipelined sub5 4bytes
 							mda[0] <= (data == tcpA_dst_ip[31:24]);
 							mdb[0] <= (data == tcpB_dst_ip[31:24]);
+							mdc[0] <= (data == tcpC_dst_ip[31:24]);
+							mdd[0] <= (data == tcpD_dst_ip[31:24]);
+							tcp_dst_ip[31:24] <= data;
 						end
 				sIPV4_IPDST1: begin
 							pos <= sIPV4_IPDST2;
 							mda[1] <= (data == tcpA_dst_ip[23:16]);
 							mdb[1] <= (data == tcpB_dst_ip[23:16]);
+							mdc[1] <= (data == tcpC_dst_ip[23:16]);
+							mdd[1] <= (data == tcpD_dst_ip[23:16]);
+							tcp_dst_ip[23:16] <= data;
 						end
 				sIPV4_IPDST2: begin
 							pos <= sIPV4_IPDST3;
 							mda[2] <= (data == tcpA_dst_ip[15:8]);
 							mdb[2] <= (data == tcpB_dst_ip[15:8]);
+							mdc[2] <= (data == tcpC_dst_ip[15:8]);
+							mdd[2] <= (data == tcpD_dst_ip[15:8]);
+							tcp_dst_ip[15:8] <= data;
 						end
 				sIPV4_IPDST3: begin
 							// if options, loop through OPTIONS0-3 to skip 32bit words, else
@@ -367,6 +389,9 @@ module Tcp
 							else pos <= sIPV4_OPTION0;
 							mda[3] <= (data == tcpA_dst_ip[7:0]);
 							mdb[3] <= (data == tcpB_dst_ip[7:0]);
+							mdc[3] <= (data == tcpC_dst_ip[7:0]);
+							mdd[3] <= (data == tcpD_dst_ip[7:0]);
+							tcp_dst_ip[7:0] <= data;
 						end
 				 // IPv4 OPTIONS loop
 				 sIPV4_OPTION0: begin
@@ -421,21 +446,33 @@ module Tcp
 							counterEthIPTypeTCP <= counterEthIPTypeTCP + 1;
 							msa[4] <= (data == tcpA_src_port[15:8]);
 							msb[4] <= (data == tcpB_src_port[15:8]);
+							msc[4] <= (data == tcpC_src_port[15:8]);
+							msd[4] <= (data == tcpD_src_port[15:8]);
+							tcp_src_port[15:8] <= data;
 						end
 				sTCP_SRCP1: begin
 							pos <= sTCP_DSTP0;
 							msa[5] <= (data == tcpA_src_port[7:0]);
 							msb[5] <= (data == tcpB_src_port[7:0]);
+							msc[5] <= (data == tcpC_src_port[7:0]);
+							msd[5] <= (data == tcpD_src_port[7:0]);
+							tcp_src_port[7:0] <= data;
 						end
 				sTCP_DSTP0: begin
 							pos <= sTCP_DSTP1;
 							mda[4] <= (data == tcpA_dst_port[15:8]);
 							mdb[4] <= (data == tcpB_dst_port[15:8]);
+							mdc[4] <= (data == tcpC_dst_port[15:8]);
+							mdd[4] <= (data == tcpD_dst_port[15:8]);
+							tcp_dst_port[15:8] <= data;
 						end
 				sTCP_DSTP1: begin
 							pos <= sTCP_SEQ0;
 							mda[5] <= (data == tcpA_dst_port[7:0]);
 							mdb[5] <= (data == tcpB_dst_port[7:0]);
+							mdc[5] <= (data == tcpC_dst_port[7:0]);
+							mdd[5] <= (data == tcpD_dst_port[7:0]);
+							tcp_dst_port[7:0] <= data;
 						end
 				// it's mandatory to buffer the SEQuence number as we don't know whether to latch
 				// to tcpSeqNum (SYN) or compare for gaploss (!SYN)
@@ -532,6 +569,8 @@ module Tcp
 
 		outDataMatchA <= dataValid && tcp_matchA && pos == sTCP_DATA;
 		outDataMatchB <= dataValid && tcp_matchB && pos == sTCP_DATA;
+		outDataMatchC <= dataValid && tcp_matchC && pos == sTCP_DATA;
+		outDataMatchD <= dataValid && tcp_matchD && pos == sTCP_DATA;
 		outDataPayload <= dataValid && pos == sTCP_DATA;
 		outData <= data;
 
