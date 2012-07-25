@@ -191,10 +191,10 @@ module Tcp
 	reg [5:0] msd=0; // match src ip+port
 	reg [5:0] mdd=0; // match src ip+port
 
-	wire tcp_matchA = (& msa) && (& mda);
-	wire tcp_matchB = (& msb) && (& mdb);
-    wire tcp_matchC = (& msc) && (& mdc);
-	wire tcp_matchD = (& msd) && (& mdd);
+	assign tcp_matchA = (& msa) && (& mda);
+	assign tcp_matchB = (& msb) && (& mdb);
+	assign tcp_matchC = (& msc) && (& mdc);
+	assign tcp_matchD = (& msd) && (& mdd);
 
 	// counters
 	reg [7:0] counterEthTypeARP = 0;
