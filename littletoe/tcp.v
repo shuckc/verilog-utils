@@ -40,10 +40,10 @@ module Tcp
 		output reg outDataPayload = 0,
 		output reg outnewpkt = 0,
 
-		output reg [15:0] tcp_src_port,
-		output reg [31:0] tcp_src_ip,
-		output reg [15:0] tcp_dst_port,
-		output reg [31:0] tcp_dst_ip,
+		output reg [15:0] tcp_src_port = 0,
+		output reg [31:0] tcp_src_ip = 0,
+		output reg [15:0] tcp_dst_port = 0,
+		output reg [31:0] tcp_dst_ip = 0,
 
 		output reg [7:0] mss = 0
 
