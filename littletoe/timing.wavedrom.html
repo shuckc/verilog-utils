@@ -1,0 +1,65 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="http://wavedrom.googlecode.com/svn/trunk/skins/default.js" type="text/javascript"></script>
+<script src="http://wavedrom.googlecode.com/svn/trunk/WaveDrom.js" type="text/javascript"></script>
+<style type="text/css">
+<!--
+body {font-family: Arial, Helvetica, sans-serif}
+-->
+</style>
+</head>
+<body>
+Timing Diagram
+
+<script type="WaveDrom">
+{ "signal" : [
+  { "name": "clk",                "wave": "p..........|...........|.." },
+  ["config bus"  ,
+    { "name": "tcpA_resync",         "wave": "010........|...........|..",   "data": ["src IP"] },
+    { "name": "tcpA_src_ip (32)",    "wave": "x4.........|...........|..",   "data": ["src IP"] },
+    { "name": "tcpA_dst_ip (32)",    "wave": "x4.........|...........|..",   "data": ["dst IP"] },
+    { "name": "tcpA_src_port (16)",  "wave": "x5.........|...........|..",   "data": ["src Port"] },
+    { "name": "tcpA_dst_port (16)",  "wave": "x5.........|...........|..",   "data": ["dst Port"] },
+  ],
+  {},
+  [ "ethernet-in",    
+    { "name": "data (8)",           "wave": "x.3.4.5.=..|x.3.4.5.=..|x.",   
+        "data": ["Eth", "IP", "TCP", "Payload", "Eth", "IP", "TCP", "Payload"] },
+    { "name": "dataValid",          "wave": "0.1........|0.1........|0."    },
+  ],
+  {},
+  [ "ethernet-out",
+    { "name": "outData (8)",        "wave": "x..3.4.5.=..|x.3.4.5.=..|x",   
+        "data": ["Eth", "IP", "TCP", "Payload", "Eth", "IP", "TCP", "Payload"] },
+    { "name": "outDataValid",       "wave": "0..1........|0.1........|0"    },
+    { "name": "outDataPayload",     "wave": "0........1..|0.......1..|0"    },
+  
+    { "name": "tcp_src_ip (32)",     "wave": "x....4......|x...4......|x",   "data": ["src IP"] },
+    { "name": "tcp_dst_ip (32)",     "wave": "x.....4.....|x....4.....|x",   "data": ["dst IP"] },
+    { "name": "tcp_src_port (16)",   "wave": "x......5....|x.....5....|x",   "data": ["src Port"] },
+    { "name": "tcp_dst_port (16)",   "wave": "x.......5...|x......5...|x",   "data": ["dst Port"] },
+  ],
+  {},
+  [ "socket",
+    { "name": "tcp_matchA",          "wave": "0.......1...|x......1...|x"    },
+    { "name": "outDataMatchA",       "wave": "0........1..|0..........|."    },
+    { "name": "tcp_retran",          "wave": "0...........|...........|."    },
+    { "name": "tcp_gap",             "wave": "0...........|.......1...|0"    },
+    { "name": "tcp_sequnknown",      "wave": "0...........|...........|."    },
+  ],
+  {},
+  [ "rejoin",
+    { "name": "rejoin",                "wave": "0...........|........10.|0"    },
+  ],
+  {},
+  
+],
+ "config" : { "hscale" : 1.0 }
+}
+</script>
+
+          
+</body>
+</html>

@@ -3,10 +3,64 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 // Company:
-// Engineer:	Chris Shucksmith
-// Description:
-//	Pull out TCP payload bytes from packet-orientated TCP/IP frames.
-//  Follows a single TCP session/stream
+// Engineer:	 Chris Shucksmith
+// Description:  Read-only TCP/IP decoder stack, 4x socket streams.
+//	
+//  Identify and classify TCP payload bytes from packet-orientated TCP/IP frames.
+//  Follow up to four extenally configured TCP session/streams for sequence correctness
+//
+//  Four sockets can be independantly followed, ABCD, documented here genericaly as N. 
+//  
+//  If TCP packet with SYN flag set is seen matching the src/dest ip/port an initial sequence
+//  number is loaded. TCP Payload bytes in-sequence from this are emitted guarded by 
+//  outDataMatchN flag. Out of sequence packets are emitted with the lower guard tcp_matchN
+//  set, which indicates payload for the right TCP socket, but not in sequenece. A yet-lower
+//  priority flag, outDataPayload indicates payload bytes belong *some* unclassified TCP session. 
+//
+//  Eg. For in-sequence payload bytes of TCPA, outDataMatchA and outDataPayload 
+//  are all asserted for every byte in the payload, while tcp_matchA is asserted from the 
+//  bytes that identidy the stream until the next stream is selected. Guard it by outDataPayload
+//  if that is required.
+// 
+//  If the tcpN_{src/dest}_{port/ip} registers are modified to follow an established session
+//  it is likely a SYN will not be seen. If the next packet should be used to seed the sequence
+//  number, assert tcpN_resync for one cycle. This will be latched internally until such a 
+//  matching packet arrives. If the context of the packet should be used to determine if the 
+//  join is appropriate, based on the context within some higher level protocol, drive 
+//  tcp_rejoin within the payload to indicate the rejoin is permitted. Otherwise drive rejoin 
+//  with 1 to join at any packet boundary, or zero to join only at SYN packets.
+// 
+//  TCP sequence number is a modulo 32-bit counter increasing from the 'initial sequence number'
+//  seeded from a random value. For a packet of payload length L and sequence number S, the next
+//  packet will contain sequence number S+L.
+// 
+//  As mentioned previously, for packets in-sequence, outDataMatchN is asserted.
+//  if the sequence number is below that expected, 'tcp_retran' is asserted, and the 
+//  stream sequence number unchanged. If the sequence number is above that expected, 
+//  'tcp_gap' is asserted. 
+// 
+//  TCP retransmission can be benign: packets with 'tcp_retran' can be ignored in the 
+//  hope that the retransmission will conclude with the expected packet. Such a scenario can 
+//  be caused by a lost-ACK on the reutrn path. A gap however requires active handling. If the
+//  active host also experiances the gap and causes retransmission in the usual way (ack'ing a prev
+//  sequence number) it is possible the sequence will be resumed autonoumously by that host's actions. 
+//  In an imperfect local network however it should be considered that the packet could be lost before
+//  this decoder yet reached the active host. In this case, the gap will never be filled, ie. outDataMatchN
+//  never resserted.
+//
+//  Knowledge of the upper-level payload protocol is required to rejoin the stream at a 
+//  safe point, or to trigger the active host to reconnect, causing a SYN and reset of the sequence
+//  number. By setting tcp_rejoin at a safe-point the logic is asserting to the stack that payload was
+//  rejoined and that packets after that should be considered in sequence.
+//
+//  There is a third classification for packets arriveing more than 1M bytes behind or 1M ahead of the 
+//  expected stream position, 'tcp_sequnknown' which is often found when looping a packet capture and
+//  may require careful handling. It is not clear when this is asserted, if a retransmission or gap has 
+//  occured. Most likely ignoring the packet is the correct action to take, reusming from the next 
+//  safe-point.
+// 
+//  
+//
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -20,6 +74,8 @@ module Tcp
 		input newpkt,
 		input dataValid,
 		input [7:0] data,
+
+		input rejoin,      // assert during a payload, whilst tcp_matchN is asserted but not outDataMatchN to rejoin stream
 
 		// per session
 		input [15:0] tcpA_src_port,     tcpB_src_port,      tcpC_src_port,      tcpD_src_port,
