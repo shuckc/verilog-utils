@@ -1,8 +1,6 @@
 `timescale 1ns / 1ps
 `define NULL 0
 
-////////////////////////////////////////////////////////////////////////////////
-// Company:
 // Engineer:	Chris Shucksmith
 // Description:
 //	Utility to replay a packets from a pcap file over a single-byte bus
@@ -11,7 +9,6 @@
 //
 //  $fread(mem, fid) parameter ordering seems Icarus specific :-/
 //
-////////////////////////////////////////////////////////////////////////////////
 
 module PcapParser
 	#(

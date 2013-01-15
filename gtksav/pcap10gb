@@ -1,0 +1,25 @@
+[*]
+[*] GTKWave Analyzer v3.3.34 (w)1999-2012 BSI
+[*] Tue Jan 15 14:30:00 2013
+[*]
+[dumpfile] "bin/pcap10gb.lxt"
+[savefile] "gtksav/pcap10gb"
+[timestart] 0
+[size] 1257 818
+[pos] 273 49
+*-19.869509 460000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] pcapparser_10gbmac_test.
+[sst_width] 197
+[signals_width] 248
+[sst_expanded] 1
+[sst_vpaned_height] 230
+@28
+pcapparser_10gbmac_test.aso_out_valid[0]
+pcapparser_10gbmac_test.aso_out_sop[0]
+pcapparser_10gbmac_test.aso_out_eop[0]
+@22
+pcapparser_10gbmac_test.aso_out_data[63:0]
+@24
+pcapparser_10gbmac_test.aso_out_empty[2:0]
+[pattern_trace] 1
+[pattern_trace] 0

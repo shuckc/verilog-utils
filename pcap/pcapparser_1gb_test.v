@@ -1,13 +1,11 @@
 `timescale 1ns / 1ps
 `define NULL 0
 
-////////////////////////////////////////////////////////////////////////////////
 // Company:
 // Engineer:
 // Description:
 //	Utility to replay a pcap file byte at a time
 //
-////////////////////////////////////////////////////////////////////////////////
 
 module PcapParser_test;
 
@@ -40,7 +38,7 @@ module PcapParser_test;
 
 	initial begin
 
-		$dumpfile("bin/opcap.lxt");
+		$dumpfile("bin/pcap.lxt");
 		$dumpvars(0,pcap);
 
 		// Initialize Inputs
