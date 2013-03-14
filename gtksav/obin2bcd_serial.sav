@@ -1,0 +1,29 @@
+[timestart] 13967000
+[size] 1000 600
+[pos] -1 -1
+*-18.188519 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] bin2bcd_serial_test.
+[treeopen] bin2bcd_serial_test.uut.
+@28
+bin2bcd_serial_test.uut.clock
+bin2bcd_serial_test.uut.start
+bin2bcd_serial_test.uut.done
+@c00024
+bin2bcd_serial_test.uut.binary_in[7:0]
+@28
+(0)bin2bcd_serial_test.uut.binary_in[7:0]
+(1)bin2bcd_serial_test.uut.binary_in[7:0]
+(2)bin2bcd_serial_test.uut.binary_in[7:0]
+(3)bin2bcd_serial_test.uut.binary_in[7:0]
+(4)bin2bcd_serial_test.uut.binary_in[7:0]
+(5)bin2bcd_serial_test.uut.binary_in[7:0]
+(6)bin2bcd_serial_test.uut.binary_in[7:0]
+(7)bin2bcd_serial_test.uut.binary_in[7:0]
+@1401204
+-group_end
+@22
+bin2bcd_serial_test.uut.bcd_out[15:0]
+@29
+bin2bcd_serial_test.uut.bcd_carry[4:0]
+[pattern_trace] 1
+[pattern_trace] 0
