@@ -7,7 +7,7 @@
 	iverilog -o $@ $^
 
 # tagets
-default: bin/pcap.lxt bin/pcap10gb.lxt bin/obin2bcd8.lxt bin/obin2bcdN.lxt bin/ohash.lxt bin/ohashmap.lxt bin/olittletoe.lxt \
+default: bin/pcap.lxt bin/pcap10gb.lxt bin/obin2bcd8.lxt bin/obin2bcd_serial.lxt bin/ohash.lxt bin/ohashmap.lxt bin/olittletoe.lxt \
 	bin/oxml.lxt
 clean: 
 	RM bin/*
@@ -27,8 +27,8 @@ bin/obin2bcd8.lxt: bin/obin2bcd8.bin
 bin/obin2bcd8.bin: bcd/bin2bcd8*.v bcd/add3.v
 	iverilog -o $@ $^
 
-bin/obin2bcdN.lxt: bin/obin2bcdN.bin
-bin/obin2bcdN.bin: bcd/bin2bcdN*.v
+bin/obin2bcd_serial.lxt: bin/obin2bcd_serial.bin
+bin/obin2bcd_serial.bin: bcd/bin2bcd_serial*.v
 	iverilog -o $@ $^
 
 bin/ohash.lxt: bin/ohash.bin

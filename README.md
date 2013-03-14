@@ -14,7 +14,7 @@ Basic 1G line-speed, read-only MAC/IP/TCP stack to follow a specific TCP session
 
 bcd (synth)
 -----------
-Convertors to and from binary to numerical ascii/bcd
+Convertor from binary to binary coded decimal (BCD). `bin2bcd_serial.v` can be sythesised to any required width and takes one cycle per input binary bit.
 
 xml (synth)
 -----------
