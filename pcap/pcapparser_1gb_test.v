@@ -39,7 +39,7 @@ module PcapParser_test;
 	initial begin
 
 		$dumpfile("bin/pcap.lxt");
-		$dumpvars(0,pcap);
+		$dumpvars(0);
 
 		// Initialize Inputs
 		$display("Reading from pcap");

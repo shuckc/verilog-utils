@@ -84,21 +84,24 @@ module PcapParser
 			// fields of interest are U32 so bear in mind the byte ordering when assembling
 			// multibyte fields
 			r = $fread(packet_header, file);
-			if (swapped == 1) begin
-				pktSz  = {packet_header[11],packet_header[10],packet_header[9] ,packet_header[8] };
-				diskSz = {packet_header[15],packet_header[14],packet_header[13],packet_header[12]};
-			end else begin
-				pktSz =  {packet_header[ 8],packet_header[ 9],packet_header[10],packet_header[11]};
-				diskSz = {packet_header[12],packet_header[13],packet_header[14],packet_header[15]};
+			eof = $feof(file);
+
+			if ( eof == 0) begin
+				if (swapped == 1) begin
+					pktSz  = {packet_header[11],packet_header[10],packet_header[9] ,packet_header[8] };
+					diskSz = {packet_header[15],packet_header[14],packet_header[13],packet_header[12]};
+				end else begin
+					pktSz =  {packet_header[ 8],packet_header[ 9],packet_header[10],packet_header[11]};
+					diskSz = {packet_header[12],packet_header[13],packet_header[14],packet_header[15]};
+				end
+
+				$display("  packet %0d: incl_length %0d orig_length %0d eof %0d", pktcount, pktSz, diskSz, eof );
+
+				available <= 1;
+				newpkt <= 1;
+				pktcount <= pktcount + 1;
+				countIPG <= ipg;	// reload interpacket gap counter
 			end
-
-			$display("  packet %0d: incl_length %0d orig_length %0d", pktcount, pktSz, diskSz );
-
-			available <= 1;
-			newpkt <= 1;
-			pktcount <= pktcount + 1;
-			countIPG <= ipg;	// reload interpacket gap counter
-
 		end else if ( diskSz > 0) begin
 
 			// packet content is byte-aligned, no swapping required
