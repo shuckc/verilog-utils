@@ -30,6 +30,10 @@ altera
 Code from the Altera cookbook modified to simulate in Icarus.  
 http://www.altera.com/literature/manual/stx_cookbook.pdf
 
+scramble
+--------
+Scrambler/descrambler serial/parallel pairs.
+
 Testbenches
 ===========
 Test benches can be rebuilt with `make` assuming you have `ivp` and `iverilog` on your path.  
