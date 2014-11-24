@@ -38,6 +38,7 @@ module PcapParser
 	reg [7:0] packet_header [0:15];
 
 	integer swapped = 0;
+	integer toNanos = 0;
 	integer file = 0;
 	integer r    = 0;
 	integer eof  = 0;
@@ -65,14 +66,24 @@ module PcapParser
 		r = $fread(global_header,file);
 
 		// check magic signature to determine byte ordering
-		if (global_header[0] == 8'hD4 && global_header[1] == 8'hC3) begin
-			$display(" pcap endian: swapped");
+		if (global_header[0] == 8'hD4 && global_header[1] == 8'hC3 && global_header[2] == 8'hB2) begin
+			$display(" pcap endian: swapped, ms");
 			swapped = 1;
-		end else if (global_header[0] == 8'hA1 && global_header[1] == 8'hB2) begin
-			$display(" pcap endian: native");
+			toNanos = 32'd1000000;
+		end else if (global_header[0] == 8'hA1 && global_header[1] == 8'hB2 && global_header[2] == 8'hC3) begin
+			$display(" pcap endian: native, ms");
 			swapped = 0;
+			toNanos = 32'd1000000;
+		end else if (global_header[0] == 8'h4D && global_header[1] == 8'h3C && global_header[2] == 8'hb2) begin
+			$display(" pcap endian: swapped, nanos");
+			swapped = 1;
+			toNanos = 32'd1;
+		end else if (global_header[0] == 8'hA1 && global_header[1] == 8'hB2 && global_header[2] == 8'h3c) begin
+			$display(" pcap endian: native, nanos");
+			swapped = 0;
+			toNanos = 32'd1;
 		end else begin
-			$display(" pcap endian: unrecognised format");
+			$display(" pcap endian: unrecognised format %02x%02x%02x%02x", global_header[0], global_header[1], global_header[2], global_header[3] );
 			$finish_and_return(1);
 		end
 	end
